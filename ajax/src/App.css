@@ -1,0 +1,10 @@
+html {
+    font-size: 12px; /* Default font size for mobile or smaller screens */
+}
+
+@media (min-width: 1024px) {
+    html {
+        font-size: 14px; /* Larger font size for desktop screens */
+    }
+}
+
