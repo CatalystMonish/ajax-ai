@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ChatCard from "../components/ChatCard.jsx";
 import ChatMessageBubble from "../components/ChatMessageBubble.jsx";
 import logo from "../images/header_logo.png";
@@ -7,6 +7,8 @@ import Lottie from "lottie-react";
 import loadingAnimation from "../lottie/load.json";
 import typingAnimation from "../lottie/typing.json";
 import interactWithWhisper from "../utils/interactWithWhisper";
+import { useParams } from "react-router-dom";
+
 const aiBots = {
   "Ajax Overview":
     "Your bot that offers detailed insights into Ajax's history, products and future plans.",
@@ -18,11 +20,24 @@ const aiBots = {
     "Your AI bot offering in-depth, detailed guidance on Ajax's industrial insights.",
 };
 
-function ChatScreen() {
-  const [query, setQuery] = useState("");
+function ChatScreen(route) {
+  const { q: initialQuery } = useParams();  // Use useParams to get route parameters
+  const [query, setQuery] = useState(initialQuery || "");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAloud, setIsAloud] = useState(false);
+
+  useEffect(() => {
+    // Check if q1 is provided in the route params
+    if (route.params && route.params.q) {
+      // Set q1 as the initial value for the query state
+      setQuery(route.params.q);
+
+      // Trigger the submit button functionality
+      handleQuerySubmit();
+    }
+  }, [route.params]);
+
   const handleQueryChange = (e) => {
     setQuery(e.target.value);
   };
@@ -98,11 +113,12 @@ function ChatScreen() {
     setIsLoading(false); // Stop loading
   };
   return (
+    
     <div className="bg-background">
       <div className="flex flex-row w-screen">
         <div className=" bg-[#3E3E72] flex-shrink-0 w-[26.125rem] h-screen pt-[5rem] ">
           {Object.entries(aiBots).map(([AIName, AIDescription], index) => (
-            <ChatCard AIName={AIName} />
+            <ChatCard AIName={AIName} key={index} />
           ))}
         </div>
         <div className="h-screen flex-shrink-0 flex flex-col width-subtract items-center">

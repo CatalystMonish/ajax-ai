@@ -1,17 +1,18 @@
 import React from "react";
 
 function AudioCardMain({Audioname}) {
+  const maxCardWidth = "37.125rem";
   return (
-    <div className="flex border-[2px] border-[#6948C9] p-[0.9375rem] rounded-full items-center min-w-[33.125rem]">
+    <div className={`flex border-[2px] border-[#6948C9] p-[0.9375rem] rounded-full items-center min-w-${maxCardWidth}`}>
       <div className="w-[5rem] h-[5rem] bg-[#535497] rounded-full" />
-      <p className="text-[1.25rem] font-pop font-medium text-[#C4C4EB] ml-[1.875rem] pr-[2rem] ">
+      <p className={`text-[1.25rem] font-pop font-medium text-[#C4C4EB] ml-[1.875rem] pr-[2rem]`} style={{ maxWidth: maxCardWidth }}>
         {Audioname}
       </p>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
         fill="currentColor"
-        className="w-[1.75rem] h-[1.75rem] text-white  ml-auto mr-[1.875rem]"
+        className="w-[1.75rem] h-[1.75rem] text-white ml-auto mr-[1.875rem]"
       >
         <path
           fillRule="evenodd"
