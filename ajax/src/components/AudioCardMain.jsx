@@ -1,11 +1,11 @@
 import React from "react";
 
-function AudioCardMain() {
+function AudioCardMain({Audioname}) {
   return (
     <div className="flex border-[2px] border-[#6948C9] p-[0.9375rem] rounded-full items-center min-w-[33.125rem]">
       <div className="w-[5rem] h-[5rem] bg-[#535497] rounded-full" />
-      <p className="text-[1.25rem] font-pop font-medium text-[#C4C4EB] ml-[1.875rem]">
-        Audio 1
+      <p className="text-[1.25rem] font-pop font-medium text-[#C4C4EB] ml-[1.875rem] pr-[2rem] ">
+        {Audioname}
       </p>
       <svg
         xmlns="http://www.w3.org/2000/svg"
