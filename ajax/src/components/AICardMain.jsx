@@ -1,8 +1,12 @@
 import React from "react";
 import VideoCardQuestion from "./VideoCardQuestion.jsx";
 import StartChatButton from "./StartChatButton.jsx";
+import { Link } from "react-router-dom"; 
 
 function AICardMain({ AIName, AIDescription, AIPicture, Q1, Q2, Q3, Q4 }) {
+
+  
+
   return (
     <div className="flex p-[1.5625rem] flex-col shadow-md hover:shadow-xl  bg-card rounded-[0.625rem] max-w-[28rem]">
       <div className="flex flex-row">
@@ -18,10 +22,10 @@ function AICardMain({ AIName, AIDescription, AIPicture, Q1, Q2, Q3, Q4 }) {
         </div>
       </div>
       <div className="flex flex-col mt-[0.9375rem] gap-[0.625rem] mb-[0.9375rem]">
-        <VideoCardQuestion q={Q1}/>
-        <VideoCardQuestion q={Q2}/>
-        <VideoCardQuestion q={Q3}/>
-        <VideoCardQuestion q={Q4}/>
+      <Link to="/chat" className="cursor-pointer"> <VideoCardQuestion q={Q1}/></Link>
+      <Link to="/chat" className="cursor-pointer"> <VideoCardQuestion q={Q2}/></Link>
+      <Link to="/chat" className="cursor-pointer"><VideoCardQuestion q={Q3}/></Link>
+      <Link to="/chat" className="cursor-pointer"><VideoCardQuestion q={Q4}/></Link>
       </div>
       <div className="flex ml-auto">
         <StartChatButton />

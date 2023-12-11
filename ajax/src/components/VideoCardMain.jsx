@@ -4,7 +4,7 @@ import VideoCardQuestion from "./VideoCardQuestion.jsx";
 
 function VideoCardMain({name, description, q1, q2}) {
   return (
-    <div className="bg-card flex-shrink-0 rounded-[0.625rem] py-[1.25rem] pl-[1.5625rem] pr-[1.875rem] w-fit max-w-[33.5625rem] flex flex-row shadow-md hover:shadow-xl ">
+    <div className="bg-card flex-shrink-0 rounded-[0.625rem] py-[1.25rem] pl-[1.5625rem] pr-[1.875rem] w-fit max-w-[33.5625rem] flex flex-row shadow-md hover:shadow-xl " >
       <img src={test} className="" />
       <div className="flex flex-col ml-[1.5625rem]">
         <p className="font-pop font-semibold text-white text-[1.5625rem]">
