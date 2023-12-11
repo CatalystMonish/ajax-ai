@@ -2,7 +2,7 @@ import React from "react";
 import VideoCardQuestion from "./VideoCardQuestion.jsx";
 import StartChatButton from "./StartChatButton.jsx";
 
-function AICardMain() {
+function AICardMain({ AIName, AIDescription, AIPicture, AIQuestions }) {
   return (
     <div className="flex p-[1.5625rem] flex-col shadow-md hover:shadow-xl  bg-card rounded-[0.625rem] max-w-[28rem]">
       <div className="flex flex-row">
@@ -10,10 +10,10 @@ function AICardMain() {
 
         <div className="flex flex-col ml-[1.25rem]">
           <p className="font-pop font-semibold text-white text-[1.5625rem] mb-[0.3125rem]">
-            HSE
+            {AIName}
           </p>
           <p className="font-pop font-medium text-[#7B7AB7] text-[1rem]">
-            This is some sample text about the assistant and what does it do
+            {AIDescription}
           </p>
         </div>
       </div>

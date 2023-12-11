@@ -70,3 +70,6 @@ body {
   overflow-y: auto; /* Allows vertical scrolling */
 }
 
+.width-subtract {
+  width: calc(100vw - 26.125rem);
+}
