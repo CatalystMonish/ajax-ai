@@ -1,13 +1,18 @@
-const ELEVENLABS_API_KEY = "f1910d6a647c9c622cf903290dc185b8"; // Your ElevenLabs API key
+const ELEVENLABS_API_KEY = ""; // Your ElevenLabs API key
 
-async function interactWithElevenLabs(text) {
+async function interactWithElevenLabs(
+  text,
+  voiceID = "2zRM7PkgwBPiau2jvVXc",
+  onStart,
+  onEnd,
+) {
   const elevenLabsHeaders = {
     "Content-Type": "application/json",
     "xi-api-key": ELEVENLABS_API_KEY,
   };
 
   const elevenLabsData = {
-    model_id: "eleven_monolingual_v1", // Replace with your actual model_id
+    model_id: "eleven_turbo_v2",
     text: text,
     voice_settings: {
       similarity_boost: 0.5,
@@ -17,10 +22,9 @@ async function interactWithElevenLabs(text) {
     },
   };
 
-  const voiceId = "2zRM7PkgwBPiau2jvVXc"; // Replace with your actual voice ID
   try {
     const elevenLabsResponse = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceID}`,
       {
         method: "POST",
         headers: elevenLabsHeaders,
@@ -29,7 +33,7 @@ async function interactWithElevenLabs(text) {
     );
 
     if (!elevenLabsResponse.ok) {
-      const errorResponse = await elevenLabsResponse.text(); // or .json() if the API returns JSON
+      const errorResponse = await elevenLabsResponse.text();
       console.error("Error response from ElevenLabs:", errorResponse);
       return;
     }
@@ -38,7 +42,15 @@ async function interactWithElevenLabs(text) {
     const audioUrl = URL.createObjectURL(audioResponse);
 
     const audio = new Audio(audioUrl);
+    audio.onplay = () => {
+      if (onStart) onStart();
+    };
+    audio.onended = () => {
+      if (onEnd) onEnd();
+    };
     audio.play().catch((e) => console.error("Error playing audio:", e));
+
+    return audio; // Return the audio object
   } catch (error) {
     console.error("Error with ElevenLabs API:", error);
   }

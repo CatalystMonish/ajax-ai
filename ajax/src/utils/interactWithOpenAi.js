@@ -2,8 +2,13 @@ import interactWithElevenLabs from "./interactWithElevenLabs.js";
 import { marked } from "marked";
 
 let globalThreadId = null;
-async function interactWithOpenAI(message, isAloud) {
-  const OPENAI_API_KEY = "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"; // Replace with your actual API key
+async function interactWithOpenAI(
+  message,
+  isAloud,
+  selectedOption,
+  assistantId = "asst_Po9xlahc0bNt7EojFwqSPCSo",
+) {
+  const OPENAI_API_KEY = ""; // Replace with your actual API key
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -33,7 +38,7 @@ async function interactWithOpenAI(message, isAloud) {
     {
       method: "POST",
       headers: headers,
-      body: JSON.stringify({ assistant_id: "asst_Po9xlahc0bNt7EojFwqSPCSo" }), // Replace with your actual assistant ID
+      body: JSON.stringify({ assistant_id: assistantId }), // Use the passed assistantId or the default
     },
   );
   const runData = await runResponse.json();
@@ -97,9 +102,10 @@ async function interactWithOpenAI(message, isAloud) {
 
   if (isAloud) {
     const plainText = createPlainTextFromMarkdown();
-    await interactWithElevenLabs(plainText);
+    const voiceId =
+      selectedOption === 2 ? "LrYtPz3RwneBN65UhzNl" : "2zRM7PkgwBPiau2jvVXc"; // Default voice ID
+    await interactWithElevenLabs(plainText, voiceId);
   }
-
   return latestMessageText;
 }
 

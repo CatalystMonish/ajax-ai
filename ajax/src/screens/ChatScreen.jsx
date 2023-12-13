@@ -7,36 +7,126 @@ import Lottie from "lottie-react";
 import loadingAnimation from "../lottie/load.json";
 import typingAnimation from "../lottie/typing.json";
 import interactWithWhisper from "../utils/interactWithWhisper";
-import { useParams } from "react-router-dom";
+import ajax from "../images/ajax.png";
+import hse from "../images/hse.png";
+import printer from "../images/3d-printer.png";
+import industry from "../images/industry.png";
+import StarterQuestions from "../components/StarterQuestions.jsx";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
-const aiBots = {
-  "Ajax Overview":
-    "Your bot that offers detailed insights into Ajax's history, products and future plans.",
-  "HSE Essentials":
-    "Your bot to provide expert guidance on Health, Safety, and Environmental compliance and best practices.",
-  "3-D Printing Basics":
-    "Your bot that provides comprehensive guidance on the fundamentals and intricacies of 3D printing.",
-  "Industrial Insights":
-    "Your AI bot offering in-depth, detailed guidance on Ajax's industrial insights.",
-};
+const aiBots = [
+  {
+    AIName: "AJAX Overview",
+    AIPicture: ajax,
+    AIDescription:
+      "Your bot that offers detailed insights into Ajax's history, products and future plans.",
+    Q1: "Provide detailed product walkthrough of AJAX's Paver series",
+    Q2: "Provide detailed product walkthrough of AJAX's ARGO series",
+    Q3: "What are some of the environmentally friendly innovations incorporated into the new CEV Stage-IV ARGO series?",
+    Q4: "Briefly describe variations in ARGO series SLCM's",
+    assistantID: "asst_Po9xlahc0bNt7EojFwqSPCSo",
+  },
+  {
+    AIName: "HSE Essentials",
+    AIPicture: hse,
+    AIDescription:
+      "Your bot to provide expert guidance on Health, Safety, and Environmental compliance and best practices.",
+    Q1: "What are the legal implications of failing to adhere to HSE standards in the Indian construction sector?",
+    Q2: "Develop an HSE playbook for cement & construction equipment industry",
+    Q3: "HSE checklist as per Indian laws for industrial plants\n",
+    Q4: "How do Indian HSE regulations address the environmental impact of large-scale construction projects?",
+    assistantID: "asst_Po9xlahc0bNt7EojFwqSPCSo",
+  },
+  {
+    AIName: "3-D Printing Basics",
+    AIPicture: printer,
+    AIDescription:
+      "Your bot that provides comprehensive guidance on the fundamentals and intricacies of 3D printing.",
+    Q1: "How will the Cement industry Value Chain adapt for the success of 3D cement printing",
+    Q2: "What are the key methods and materials used in 3D concrete Printing?",
+    Q3: "Blue ocean analysis of 3D printing in the construction industry",
+    Q4: "Brief global adoption of 3D concrete printing across the world",
+    assistantID: "asst_Po9xlahc0bNt7EojFwqSPCSo",
+  },
+  {
+    AIName: "Industrial Insights",
+    AIPicture: industry,
+    AIDescription:
+      "Your AI bot offering in-depth, detailed guidance on Ajax's industrial insights.",
+    Q1: "How is the trend towards affordable housing in India influencing the cement industry?",
+    Q2: "How are recent government regulations in India affecting the cement industry, particularly in areas of taxation and environmental compliance?",
+    Q3: "What are the potential impacts of the Indian government's 'Smart Cities' initiative on the cement industry?",
+    Q4: "What are the key challenges faced by the Indian cement industry in terms of sustainability and environmental impact?",
+    assistantID: "asst_Po9xlahc0bNt7EojFwqSPCSo",
+  },
+];
 
-function ChatScreen(route) {
-  const { q: initialQuery } = useParams();  // Use useParams to get route parameters
+const loadingSteps = [
+  "Initializing AI assistant",
+  "Analyzing your query",
+  "Accessing data sources",
+  "Synthesizing information",
+  "Formulating response",
+  "Finalizing answer",
+];
+
+function ChatScreen() {
+  const { q: initialQuery } = "";
+  const location = useLocation(); // Correct useLocation to get state
+  const { state } = location; // Extract state from location
   const [query, setQuery] = useState(initialQuery || "");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAloud, setIsAloud] = useState(false);
+  const [isTooltipVisible, setTooltipVisible] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(1); // Assuming 1 and 2 are option identifiers
+  const navigate = useNavigate();
+  const [activeAIBot, setActiveAIBot] = useState(aiBots[0]);
+  const [currentLoadingText, setCurrentLoadingText] = useState("");
+  const [starterQuestionSelected, setStarterQuestionSelected] = useState(false);
+  const [whisperActive, setWhisperActive] = useState(false);
+
+  const goHome = async () => {
+    navigate("/");
+  };
+  const handleQuestionClick = (question) => {
+    setQuery(question);
+    setStarterQuestionSelected(true); // Add this line
+  };
 
   useEffect(() => {
-    // Check if q1 is provided in the route params
-    if (route.params && route.params.q) {
-      // Set q1 as the initial value for the query state
-      setQuery(route.params.q);
+    let intervalId;
+    let stepIndex = 0;
 
-      // Trigger the submit button functionality
-      handleQuerySubmit();
+    if (isLoading) {
+      setCurrentLoadingText(loadingSteps[stepIndex]);
+      intervalId = setInterval(() => {
+        stepIndex++;
+        if (stepIndex < loadingSteps.length) {
+          setCurrentLoadingText(loadingSteps[stepIndex]);
+        } else {
+          clearInterval(intervalId); // Stop the interval when the last step is reached
+        }
+      }, 5000);
     }
-  }, [route.params]);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (state?.question && state.question !== query) {
+      // Directly use state.question here and update the query state
+      setQuery(state.question);
+    }
+  }, [state?.question]);
+
+  const handleChatCardClick = (aiBot) => {
+    setActiveAIBot(aiBot); // Set the clicked AI bot as active
+  };
 
   const handleQueryChange = (e) => {
     setQuery(e.target.value);
@@ -45,6 +135,7 @@ function ChatScreen(route) {
   const handleQuerySubmit = async () => {
     if (query.trim() === "") return;
     setIsLoading(true);
+    setStarterQuestionSelected(true); // Add this line
 
     const currentQuery = query; // Store the current query
     setQuery(""); // Clear the input box immediately
@@ -56,7 +147,11 @@ function ChatScreen(route) {
     ]);
 
     try {
-      const response = await interactWithOpenAI(currentQuery, isAloud);
+      const response = await interactWithOpenAI(
+        currentQuery,
+        isAloud,
+        selectedOption,
+      );
       if (typeof response === "string") {
         setMessages((messages) => [
           ...messages,
@@ -77,22 +172,37 @@ function ChatScreen(route) {
     setIsLoading(false); // This will be executed after the response is received
   };
 
+  const activeAIQuestions = [
+    activeAIBot.Q1,
+    activeAIBot.Q2,
+    activeAIBot.Q3,
+    activeAIBot.Q4,
+  ];
   const toggleAudio = () => {
     setIsAloud(!isAloud);
   };
+
   const useWhisper = async () => {
-    setIsLoading(true); // Start loading
+    setWhisperActive(true);
+    setStarterQuestionSelected(true);
 
     try {
       const transcriptionText = await interactWithWhisper();
       console.log("Transcription:", transcriptionText);
 
+      setWhisperActive(false);
+      setIsLoading(true);
       setMessages((messages) => [
         ...messages,
         { isUser: true, message: transcriptionText },
       ]);
       // Use the transcription as input to interactWithOpenAI
-      const response = await interactWithOpenAI(transcriptionText, isAloud);
+      const response = await interactWithOpenAI(
+        transcriptionText,
+        isAloud,
+        selectedOption,
+      );
+      setIsLoading(true);
       if (typeof response === "string") {
         setMessages((messages) => [
           ...messages,
@@ -109,16 +219,38 @@ function ChatScreen(route) {
     } catch (error) {
       console.error("Error:", error);
     }
-
-    setIsLoading(false); // Stop loading
+    setIsLoading(false);
+    setWhisperActive(false);
   };
+
   return (
-    
     <div className="bg-background">
       <div className="flex flex-row w-screen">
-        <div className=" bg-[#3E3E72] flex-shrink-0 w-[26.125rem] h-screen pt-[5rem] ">
-          {Object.entries(aiBots).map(([AIName, AIDescription], index) => (
-            <ChatCard AIName={AIName} key={index} />
+        <div className=" bg-[#3E3E72] flex-shrink-0 w-[26.125rem] h-screen pt-[1rem] ">
+          <div
+            onClick={goHome}
+            className="flex items-center justify-center w-[3.125rem] h-[3.125rem] bg-white rounded-full cursor-pointer mb-[2rem] ml-[1.25rem]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-6 h-6 text-black"
+            >
+              <path
+                fillRule="evenodd"
+                d="M20.25 12a.75.75 0 01-.75.75H6.31l5.47 5.47a.75.75 0 11-1.06 1.06l-6.75-6.75a.75.75 0 010-1.06l6.75-6.75a.75.75 0 111.06 1.06l-5.47 5.47H19.5a.75.75 0 01.75.75z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          {aiBots.map((aiBot, index) => (
+            <ChatCard
+              key={index}
+              {...aiBot}
+              onClick={() => handleChatCardClick(aiBot)}
+              isActive={activeAIBot.AIName === aiBot.AIName}
+            />
           ))}
         </div>
         <div className="h-screen flex-shrink-0 flex flex-col width-subtract items-center">
@@ -126,7 +258,7 @@ function ChatScreen(route) {
             <img src={logo} className=" relative pb-[1.25rem]" />
             <div
               onClick={toggleAudio}
-              className={`absolute flex right-0 mr-[1.25rem] cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#3E3E72] items-center justify-center ${
+              className={`absolute flex right-0 mr-[3.75rem] cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#3E3E72] items-center justify-center ${
                 isAloud ? "border-2" : ""
               }`}
             >
@@ -151,10 +283,49 @@ function ChatScreen(route) {
                 </svg>
               )}
             </div>
+            <div
+              className={`absolute right-0 mr-[8rem] cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#3E3E72] flex items-center justify-center`}
+              onClick={() => setTooltipVisible(!isTooltipVisible)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-6 h-6 text-white"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"
+                />
+              </svg>
+            </div>
+            {isTooltipVisible && (
+              <div className="absolute right-[11.5rem] top-0 mt-[2rem] w-40 bg-[#3e3e72]  rounded-lg shadow-md flex flex-col items-start">
+                <button
+                  className={`w-full text-left text-[1rem] font-pop p-4  rounded-lg ${
+                    selectedOption === 1 ? "bg-white text-black" : "text-white"
+                  }`}
+                  onClick={() => setSelectedOption(1)}
+                >
+                  Sanika
+                </button>
+                <button
+                  className={`w-full text-left mt-2 text-[1rem] font-pop p-4  rounded-lg ${
+                    selectedOption === 2 ? "bg-white text-black" : "text-white"
+                  }`}
+                  onClick={() => setSelectedOption(2)}
+                >
+                  Sanjay
+                </button>
+              </div>
+            )}
           </div>
           {/* Display Messages */}
 
-          <div className="overflow-y-auto pb-[12.5rem] w-full">
+          <div className="overflow-y-auto pb-[18.75rem] w-full">
             {messages.map((msg, index) => (
               <ChatMessageBubble
                 key={index}
@@ -164,14 +335,30 @@ function ChatScreen(route) {
             ))}
             {isLoading && (
               <div className="flex w-full flex-col px-[6.25rem] pt-[0.625rem]">
-                <div className="bg-[#363662] px-[1.25rem] w-fit py-[0.625rem] rounded-tr-[1.25rem] rounded-bl-[1.25rem] rounded-br-[1.25rem] mb-[0.625rem] max-w-[6.25rem] shadow-sm ">
-                  <Lottie animationData={typingAnimation} loop={true} />
+                <div className="bg-[#363662] px-[1.25rem] w-fit py-[1.25rem] rounded-tr-[1.25rem] rounded-bl-[1.25rem] rounded-br-[1.25rem] mb-[0.625rem] items-center gap-2 shadow-sm flex flex-row flex-shrink-0">
+                  <div className="flex-shrink-0 w-[1.75rem] h-[1.75rem]">
+                    <Lottie animationData={loadingAnimation} loop={true} />
+                  </div>
+                  <p className="text-white text-[1.125rem] uppercase font-pop font-medium">
+                    {currentLoadingText}
+                  </p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className=" flex-grow flex absolute items-center mb-[1.25rem] mx-auto bottom-0">
+          <div className=" flex-grow flex flex-col absolute items-center mb-[1.25rem] mx-auto bottom-0 ">
+            {!starterQuestionSelected && ( // This condition now covers both scenarios
+              <div className="grid grid-cols-2 w-full absolute flex mx-auto bottom-0 mb-[4.375rem] gap-[0.625rem]">
+                {activeAIQuestions.map((question, index) => (
+                  <StarterQuestions
+                    key={index}
+                    q={question}
+                    onClick={() => handleQuestionClick(question)}
+                  />
+                ))}
+              </div>
+            )}
             <input
               type="text"
               value={query}
@@ -187,9 +374,8 @@ function ChatScreen(route) {
             />
             <div
               onClick={handleQuerySubmit}
-              className="absolute bg-[#6948C9] right-0 mr-2 cursor-pointer w-[2.5rem] h-[2.5rem] rounded-[0.625rem] flex items-center justify-center"
+              className="absolute bg-[#6948C9] right-0 mr-2 cursor-pointer w-[2.5rem] h-[2.5rem] rounded-[0.625rem] flex items-center justify-center bottom-0 mb-[10px]"
             >
-              {" "}
               {isLoading ? (
                 <div className="w-[1.875rem] h-[1.875rem]">
                   <Lottie animationData={loadingAnimation} loop={true} />
@@ -211,17 +397,30 @@ function ChatScreen(route) {
             </div>
             <div
               onClick={useWhisper}
-              className="absolute bg-white right-0 mr-14 cursor-pointer w-[2.5rem] h-[2.5rem] rounded-[0.625rem] flex items-center justify-center"
+              className="absolute bg-white right-0 mr-14 cursor-pointer w-[2.5rem] bottom-0 mb-[10px] h-[2.5rem] rounded-[0.625rem] flex items-center justify-center"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-[1.125rem] h-[1.125rem] text-black"
-              >
-                <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z" />
-                <path d="M5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.585 5.25 5.954V17.5h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-1.546A6.001 6.001 0 0016 10v-.357a.75.75 0 00-1.5 0V10a4.5 4.5 0 01-9 0v-.357z" />
-              </svg>
+              {whisperActive ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  className="w-[1.125rem] h-[1.125rem] animate-pulse"
+                >
+                  <path
+                    d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                    fill="#94110f"
+                  ></path>
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="w-[1.125rem] h-[1.125rem] text-black"
+                >
+                  <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z" />
+                  <path d="M5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.585 5.25 5.954V17.5h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-1.546A6.001 6.001 0 0016 10v-.357a.75.75 0 00-1.5 0V10a4.5 4.5 0 01-9 0v-.357z" />
+                </svg>
+              )}
             </div>
           </div>
         </div>

@@ -26,8 +26,8 @@ async function interactWithWhisper() {
       }
 
       if (isSilent) {
-        if (isRecording && performance.now() - silenceStart > 1000) {
-          // Stop recording after 1 second of silence
+        if (isRecording && performance.now() - silenceStart > 2000) {
+          // Stop recording after 2 second of silence
           mediaRecorder.stop();
           audioContext.close(); // Close the audio context
           isRecording = false;
@@ -54,8 +54,7 @@ async function interactWithWhisper() {
             {
               method: "POST",
               headers: {
-                Authorization:
-                  "Bearer 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", // Replace with your API key
+                Authorization: "Bearer ", // Replace with your API key
               },
               body: formData,
             },
