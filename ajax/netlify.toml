@@ -1,0 +1,8 @@
+[build]
+publish = "dist" # since your build output is in the 'dist' folder
+command = "vite build" # or your specific build command for Vite
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200

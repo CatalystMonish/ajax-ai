@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ChatCard from "../components/ChatCard.jsx";
 import ChatMessageBubble from "../components/ChatMessageBubble.jsx";
 import logo from "../images/header_logo.png";
@@ -10,8 +10,10 @@ import interactWithWhisper from "../utils/interactWithWhisper";
 import ajax from "../images/ajax.png";
 import hse from "../images/hse.png";
 import printer from "../images/3d-printer.png";
-import industry from "../images/industry.png";
+import factory from "../images/factory.png";
 import StarterQuestions from "../components/StarterQuestions.jsx";
+import interactWithElevenLabs from "../utils/interactWithElevenLabs.js"; // Import the function
+
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const aiBots = [
@@ -49,8 +51,8 @@ const aiBots = [
     assistantID: "asst_Po9xlahc0bNt7EojFwqSPCSo",
   },
   {
-    AIName: "Industrial Insights",
-    AIPicture: industry,
+    AIName: "Industry Insights",
+    AIPicture: factory,
     AIDescription:
       "Your AI bot offering in-depth, detailed guidance on Ajax's industrial insights.",
     Q1: "How is the trend towards affordable housing in India influencing the cement industry?",
@@ -74,24 +76,89 @@ function ChatScreen() {
   const { q: initialQuery } = "";
   const location = useLocation(); // Correct useLocation to get state
   const { state } = location; // Extract state from location
-  const [query, setQuery] = useState(initialQuery || "");
+  const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAloud, setIsAloud] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false); // new state for tracking audio playing
+  const audioRef = useRef(null);
+  const initialIsAloud = localStorage.getItem("isAloud") === "true";
+  const [isAloud, setIsAloud] = useState(initialIsAloud);
   const [isTooltipVisible, setTooltipVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(1); // Assuming 1 and 2 are option identifiers
+  const initialSelectedOption =
+    parseInt(localStorage.getItem("selectedOption"), 10) || 1;
+  const [selectedOption, setSelectedOption] = useState(initialSelectedOption);
   const navigate = useNavigate();
-  const [activeAIBot, setActiveAIBot] = useState(aiBots[0]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const initialAIBotName =
+    localStorage.getItem("selectedAIBot") || aiBots[0].AIName;
+
+  // Find the corresponding AI bot object based on the initialAIBotName
+  const initialAIBot =
+    aiBots.find((aiBot) => aiBot.AIName === initialAIBotName) || aiBots[0];
+
+  // Use initialAIBot as the initial state for activeAIBot
+  const [activeAIBot, setActiveAIBot] = useState(initialAIBot);
   const [currentLoadingText, setCurrentLoadingText] = useState("");
   const [starterQuestionSelected, setStarterQuestionSelected] = useState(false);
   const [whisperActive, setWhisperActive] = useState(false);
-
+  useEffect(() => {
+    localStorage.setItem("isAloud", isAloud.toString());
+  }, [isAloud]);
   const goHome = async () => {
     navigate("/");
   };
   const handleQuestionClick = (question) => {
     setQuery(question);
     setStarterQuestionSelected(true); // Add this line
+  };
+
+  useEffect(() => {
+    localStorage.setItem("selectedOption", selectedOption.toString());
+  }, [selectedOption]);
+
+  const handlePlayAudio = async (response) => {
+    setIsLoading(true);
+    const voiceId =
+      selectedOption === 2 ? "cU7w5DuiKdTi6Il21yMF" : "YtvAvGwjGulirnsSTIgn";
+
+    try {
+      const audio = await interactWithElevenLabs(
+        response,
+        voiceId,
+        () => {
+          setIsPlaying(true);
+          setAudioPlaying(true);
+          setIsLoading(false);
+        },
+        () => {
+          setIsPlaying(false);
+          setAudioPlaying(false);
+        },
+      );
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
+      audioRef.current = audio;
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      setIsPlaying(false);
+      setAudioPlaying(false);
+    }
+  };
+
+  const handleStopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setAudioPlaying(false); // Reset this state when audio is stopped
+    }
+    setIsPlaying(false);
+  };
+  const handleGenderSelect = (genderOption) => {
+    setSelectedOption(genderOption); // This will trigger the useEffect above
+    setTooltipVisible(false);
   };
 
   useEffect(() => {
@@ -118,14 +185,36 @@ function ChatScreen() {
   }, [isLoading]);
 
   useEffect(() => {
-    if (state?.question && state.question !== query) {
-      // Directly use state.question here and update the query state
-      setQuery(state.question);
+    const hasUsedState = localStorage.getItem("hasUsedState") === "true";
+
+    if (!hasUsedState && state?.AIName) {
+      const aiNameLower = state.AIName.toLowerCase();
+      const aiBotIndex = aiBots.findIndex(
+        (aiBot) => aiBot.AIName.toLowerCase() === aiNameLower,
+      );
+      if (aiBotIndex !== -1) {
+        setActiveAIBot(aiBots[aiBotIndex]);
+      }
     }
-  }, [state?.question]);
+
+    // Check if the state has not been used and there is a question in the state
+    if (!hasUsedState && state?.question && state.question !== "") {
+      setQuery(state.question);
+      setStarterQuestionSelected(true);
+      localStorage.setItem("hasUsedState", "true"); // Update this to true as we have used the state
+    }
+  }, [state]);
 
   const handleChatCardClick = (aiBot) => {
-    setActiveAIBot(aiBot); // Set the clicked AI bot as active
+    localStorage.setItem("selectedAIBot", aiBot.AIName);
+
+    window.location.reload();
+    setQuery(""); // Clear the input box immediately
+  };
+
+  const handleRefreshChat = () => {
+    window.location.reload();
+    setQuery(""); // This line is not necessary as the page will be reloaded
   };
 
   const handleQueryChange = (e) => {
@@ -135,41 +224,34 @@ function ChatScreen() {
   const handleQuerySubmit = async () => {
     if (query.trim() === "") return;
     setIsLoading(true);
-    setStarterQuestionSelected(true); // Add this line
+    setStarterQuestionSelected(true);
 
-    const currentQuery = query; // Store the current query
-    setQuery(""); // Clear the input box immediately
+    const currentQuery = query;
+    setQuery(""); // Clear the input box
 
-    // Add user's message to messages array using the stored query
-    setMessages((messages) => [
-      ...messages,
+    // Add user's message to messages array
+    setMessages((prevMessages) => [
+      ...prevMessages,
       { isUser: true, message: currentQuery },
     ]);
 
     try {
-      const response = await interactWithOpenAI(
-        currentQuery,
-        isAloud,
-        selectedOption,
-      );
+      const response = await interactWithOpenAI(currentQuery, selectedOption);
       if (typeof response === "string") {
-        setMessages((messages) => [
-          ...messages,
+        setMessages((prevMessages) => [
+          ...prevMessages,
           { isUser: false, message: response },
         ]);
-      } else if (response && response.content) {
-        setMessages((messages) => [
-          ...messages,
-          { isUser: false, message: response.content },
-        ]);
-      } else {
-        console.error("Unexpected response format:", response);
+
+        if (isAloud) {
+          handlePlayAudio(response);
+        }
       }
+      // Add additional handling for complex response if needed
     } catch (error) {
       console.error("Error interacting with OpenAI:", error);
     }
-
-    setIsLoading(false); // This will be executed after the response is received
+    setIsLoading(false);
   };
 
   const activeAIQuestions = [
@@ -179,7 +261,7 @@ function ChatScreen() {
     activeAIBot.Q4,
   ];
   const toggleAudio = () => {
-    setIsAloud(!isAloud);
+    setIsAloud(!isAloud); // This will trigger the useEffect above
   };
 
   const useWhisper = async () => {
@@ -190,37 +272,40 @@ function ChatScreen() {
       const transcriptionText = await interactWithWhisper();
       console.log("Transcription:", transcriptionText);
 
-      setWhisperActive(false);
-      setIsLoading(true);
       setMessages((messages) => [
         ...messages,
         { isUser: true, message: transcriptionText },
       ]);
+      setIsLoading(true); // Set loading to true before interacting with OpenAI
       // Use the transcription as input to interactWithOpenAI
       const response = await interactWithOpenAI(
         transcriptionText,
-        isAloud,
         selectedOption,
       );
-      setIsLoading(true);
+      setIsLoading(false); // Set loading to false after getting the response
+
       if (typeof response === "string") {
         setMessages((messages) => [
           ...messages,
           { isUser: false, message: response },
         ]);
-      } else if (response && response.content) {
-        setMessages((messages) => [
-          ...messages,
-          { isUser: false, message: response.content },
-        ]);
+
+        // Play audio if isAloud is true
+        if (isAloud) {
+          handlePlayAudio(response);
+        }
       } else {
+        // Handle unexpected response format
         console.error("Unexpected response format:", response);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error in useWhisper:", error);
+      setIsLoading(false);
     }
-    setIsLoading(false);
+    setIsLoading(false); // Set loading to false after getting the response
+
     setWhisperActive(false);
+    // It's not necessary to set isLoading to false here as it's already handled in both try and catch blocks
   };
 
   return (
@@ -303,26 +388,44 @@ function ChatScreen() {
               </svg>
             </div>
             {isTooltipVisible && (
-              <div className="absolute right-[11.5rem] top-0 mt-[2rem] w-40 bg-[#3e3e72]  rounded-lg shadow-md flex flex-col items-start">
+              <div className="absolute z-10 right-[11.5rem] top-0 mt-[2rem] w-40 bg-[#3e3e72]  rounded-lg shadow-md flex flex-col items-start">
                 <button
                   className={`w-full text-left text-[1rem] font-pop p-4  rounded-lg ${
                     selectedOption === 1 ? "bg-white text-black" : "text-white"
                   }`}
-                  onClick={() => setSelectedOption(1)}
+                  onClick={() => handleGenderSelect(1)}
                 >
-                  Sanika
+                  Female
                 </button>
                 <button
                   className={`w-full text-left mt-2 text-[1rem] font-pop p-4  rounded-lg ${
                     selectedOption === 2 ? "bg-white text-black" : "text-white"
                   }`}
-                  onClick={() => setSelectedOption(2)}
+                  onClick={() => handleGenderSelect(2)}
                 >
-                  Sanjay
+                  Male
                 </button>
               </div>
             )}
+            <div
+              onClick={handleRefreshChat}
+              className={`absolute flex right-0 mr-[12.2rem] cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#3E3E72] items-center justify-center`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-6 h-6 text-white "
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
+
           {/* Display Messages */}
 
           <div className="overflow-y-auto pb-[18.75rem] w-full">
@@ -422,6 +525,25 @@ function ChatScreen() {
                 </svg>
               )}
             </div>
+            {audioPlaying && (
+              <div
+                onClick={handleStopAudio}
+                className="absolute bg-white right-0 mr-[6.5625rem] cursor-pointer w-[2.5rem] bottom-0 mb-[10px] h-[2.5rem] rounded-[0.625rem] flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-[1.125rem] h-[1.125rem] text-black"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            )}
           </div>
         </div>
       </div>

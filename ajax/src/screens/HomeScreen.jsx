@@ -8,11 +8,14 @@ import ajax from "../images/ajax.png";
 import hse from "../images/hse.png";
 import printer from "../images/3d-printer.png";
 import { motion, AnimatePresence } from "framer-motion";
-import industry from "../images/industry.png";
+import factory from "../images/factory.png";
 import sana from "../images/sana.png";
 import rohit from "../images/rohit.png";
 import siddharth from "../images/siddharth.png";
 import simran from "../images/simran.png";
+import thse from "../images/thse.png";
+import t3d from "../images/t3d.png";
+import tindustry from "../images/tindustry.png";
 import ChatMessageBubble from "../components/ChatMessageBubble.jsx";
 import Lottie from "lottie-react";
 import typingAnimation from "../lottie/typing.json";
@@ -54,8 +57,8 @@ const aiBots = [
     assistantID: "asst_Po9xlahc0bNt7EojFwqSPCSo",
   },
   {
-    AIName: "Industrial Insights",
-    AIPicture: industry,
+    AIName: "Industry Insights",
+    AIPicture: factory,
     AIDescription:
       "Your AI bot offering in-depth, detailed guidance on Ajax's industrial insights.",
     Q1: "How is the trend towards affordable housing in India influencing the cement industry?",
@@ -74,12 +77,13 @@ const videoData = [
       "Your bot that offers detailed insights into Ajax's history, products and future plans.",
     q1: "Corporate Overview of AJAX Engineering",
     q2: "AJAX's Digital Vision Powered by AI",
-    q3: 'How does AJAX uphold its "CUSTOMER FIRST" philosophy in terms of product design, manufacturing, and after-sales support?',
+    q3: 'How does AJAX uphold its "CUSTOMER FIRST" philosophy?',
     q1URL:
-      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2Fsiddharth%20timeline.mp4?alt=media&token=15e4a802-aea0-4a13-8dc5-52fff489f83d",
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FCorporate%20Overview%20of%20AJAX%20Engineering.mp4?alt=media&token=009522b7-b29a-48a5-8fd0-96f8bcc4aa6a",
     q2URL:
-      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2Fsiddharth%20timeline.mp4?alt=media&token=15e4a802-aea0-4a13-8dc5-52fff489f83d",
-    q3URL: "https://link.testfile.org/iK7sKT",
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FDigital%20Vision%20Powered%20by%20AI.mp4?alt=media&token=b92ba8a3-5967-4e2d-acb2-02bffba5eff6",
+    q3URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FCustomer%20First.mp4?alt=media&token=8db2258d-a308-4dab-a2e5-7c52bff7a5b8",
     img: sana,
   },
   {
@@ -89,35 +93,43 @@ const videoData = [
     q1: "How do cultural aspects influence safety practices in the Indian concrete construction industry?",
     q2: "What are the most common workplace hazards found in the Indian concrete construction industry?",
     q3: "Describe the process of incident and accident reporting on construction sites in India.",
-    q1URL: "https://link.testfile.org/iK7sKT",
+    q1URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FCultural%20Aspects.mp4?alt=media&token=36a90bfd-68ec-446c-bb4e-c910395f8808",
     q2URL:
-      "https://file-examples.com/storage/fed2530f4765780b09aff74/2017/04/file_example_MP4_1920_18MG.mp4",
-    q3URL: "https://link.testfile.org/iK7sKT",
-    img: rohit,
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FRisk%20Management%20.mp4?alt=media&token=86b66bdb-3d8d-4b74-9eba-81d3baccd780",
+    q3URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2Fincident%20and%20accident%20reporting.mp4?alt=media&token=021e7977-bd8f-4c3a-8502-e08611a20d38",
+    img: thse,
   },
   {
     name: "3D Printing Basics",
     description:
       "Your bot that provides comprehensive guidance on the fundamentals and intricacies of 3D printing.",
-    q1: "How would 3D printing benefit across the construction value chain in India",
-    q2: "Top environmental impacts of 3D CP",
-    q3: "Future roadmap of 3d Prinitng in Indian Economy",
-    q1URL: "https://link.testfile.org/iK7sKT",
-    q2URL: "https://link.testfile.org/iK7sKT",
-    q3URL: "https://link.testfile.org/iK7sKT",
-    img: siddharth,
+    q1: "How would 3D printing benefit across the construction value chain in India?",
+    q2: "Top environmental impacts of 3DCP",
+    q3: "Future roadmap of 3D Prinitng in Indian Economy",
+    q1URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FBenefits%20of%203D%20printing.mp4?alt=media&token=cb5cb148-9674-4188-b879-9cc5da3848e8",
+    q2URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FEnvironmental%20Impact%20of%203D%20printing.mp4?alt=media&token=a5e3591f-5325-4be9-bd6f-96a7b0937e3d",
+    q3URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FFuture%20of%203D%20printing.mp4?alt=media&token=be5601eb-105c-432d-a19e-08720a42afe1",
+    img: t3d,
   },
   {
     name: "Industry Insights",
     description:
       "Your AI bot offering in-depth, detailed guidance on Ajax's industrial insights.",
-    q1: "Overview of Indian Cement and Construction Industry",
+    q1: "What are different types of concrete equipment?",
     q2: "How is electric mobility shaping the future of construction equipment in India?",
-    q3: "What role is technology playing in transforming cement manufacturing processes in India?",
-    q1URL: "https://link.testfile.org/iK7sKT",
-    q2URL: "https://link.testfile.org/iK7sKT",
-    q3URL: "https://link.testfile.org/iK7sKT",
-    img: simran,
+    q3: "What role is technology playing in transforming cement manufacturing processes?",
+    q1URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2Fconcrete%20equipment.mp4?alt=media&token=43be2c1f-91ee-424a-bf57-0a61ee250560",
+    q2URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2FElectric%20mobility.mp4?alt=media&token=04796cf4-af86-4e2f-9b8c-fbb4f2709e8a",
+    q3URL:
+      "https://firebasestorage.googleapis.com/v0/b/render-ai.appspot.com/o/Ajax%20Files%2Frole%20of%20technology.mp4?alt=media&token=46c001b0-1fac-4e8c-b990-d5679975161f",
+    img: tindustry,
   },
 ];
 
@@ -126,7 +138,14 @@ const audio = [
     Audioname:
       "How does ConcreteAI ensure data security and privacy in its operations?",
     Answer:
-      "ConcreteAI ensures data security and privacy in its operations through the following measures: Encryption of data both in transit and at rest to prevent unauthorized access, regular security audits to assess and enhance security measures, compliance with international data protection regulations, and strict access controls to monitor who can access sensitive information. These security protocols are part of a comprehensive approach designed to safeguard sensitive information and protect user data against unauthorized access and breaches.",
+      "Concrete AI Hub\n" +
+      "ConreteAI ensures data security and privacy in its operations through the following measures:\n" +
+      "\n" +
+      "Encryption: Data is encrypted both in transit and at rest to prevent unauthorized access and ensure secure communication channels.\n" +
+      "Regular Security Audits: Routine audits are conducted to assess and enhance security measures.\n" +
+      "Compliance with International Data Protection Regulations: Adherence to global standards and regulations to ensure data protection and user privacy.\n" +
+      "Strict Access Controls: Implementation of stringent access policies to control and monitor who can access sensitive information.\n" +
+      "These security protocols are part of a comprehensive approach designed to safeguard sensitive information and protect user data against unauthorized access and breaches, demonstrating their commitment to maintaining high data integrity and confidentiality standards.\n",
   },
   {
     Audioname:
@@ -148,6 +167,55 @@ const audio = [
   },
 ];
 
+const audioHin = [
+  {
+    Audioname: "ConcreteAI अपने संचालन में डेटा सुरक्षा कैसे करता है?\n",
+    Answer:
+      "ConcreteAI अपने संचालन में डेटा सुरक्षा करता है इस प्रकार:\n" +
+      "\n" +
+      "एन्क्रिप्शन: डेटा को सुरक्षित संचार चैनलों को सुनिश्चित करने और अनधिकृत पहुँच से बचाने के लिए ट्रांजिट और आराम के दौरान एन्क्रिप्ट किया जाता है।\n" +
+      "नियमित सुरक्षा ऑडिट: सुरक्षा उपायों का आकलन और उन्हें बढ़ाने के लिए नियमित ऑडिट किए जाते हैं।\n" +
+      "अंतर्राष्ट्रीय डेटा संरक्षण नियमों का पालन: डेटा संरक्षण और उपयोगकर्ता गोपनीयता को सुनिश्चित करने के लिए वैश्विक मानकों और नियमों का पालन किया जाता है।\n" +
+      "सख्त पहुँच नियंत्रण: संवेदनशील जानकारी तक पहुँच को नियंत्रित और निगरानी करने के लिए कड़ी पहुँच नीतियाँ लागू की जाती हैं।\n" +
+      "ये सुरक्षा प्रोटोकॉल एक व्यापक दृष्टिकोण का हिस्सा हैं जो संवेदनशील जानकारी की सुरक्षा को सुनिश्चित करने और अनधिकृत पहुँच और उल्लंघनों के खिलाफ उपयोगकर्ता डेटा की रक्षा करने के लिए बनाया गया है, उच्च डेटा अखंडता और गोपनीयता मानकों को बनाए रखने के उनके प्रतिबद्धता को दर्शाता है\n",
+  },
+  {
+    Audioname:
+      "क्या ConcreteAI को हमारे संगठन के मौजूदा प्रौद्योगिकी प्लेटफॉर्म्स के साथ एकीकृत किया जा सकता है?\n",
+    Answer:
+      "हां, ConcreteAI आपके संगठन के मौजूदा प्रौद्योगिकी प्लेटफॉर्म्स के साथ आसानी से एकीकृत किया जा सकता है। यह इस प्रकार से संभव है:\n" +
+      "\n" +
+      "लचीलापन और संगतता: ConcreteAI, आपके ERP सिस्टम्स, CRM प्लेटफॉर्म्स और अन्य प्रौद्योगिकी उपकरणों के साथ बिना किसी बाधा के जोड़ा जा सकता है।\n" +
+      "संयुक्त संचालन: यह विभिन्न सिस्टम्स के बीच एक संयुक्त संचालन को बढ़ावा देता है।\n" +
+      "सहज प्रौद्योगिकी पारिस्थितिकी तंत्र: अन्य सिस्टम्स के साथ एकीकरण की क्षमता कई अलग-अलग सिस्टम्स की आवश्यकता को कम करती है, आपके संगठन के भीतर एक सहज और सुसंगत प्रौद्योगिकी वातावरण सुनिश्चित करती है।\n" +
+      "क्या ConcreteAI के बारे में और कुछ जानने में मैं आपकी सहायता कर सकता हूँ?\n" +
+      "\n",
+  },
+  {
+    Audioname:
+      "ConcreteAI निर्माण उद्योग की लगातार बदलती जरूरतों और रुझानों के अनुसार कैसे अनुकूलित होता है?\n",
+    Answer:
+      "ConcreteAI निर्माण उद्योग की लगातार बदलती जरूरतों और रुझानों के अनुसार इस प्रकार अनुकूलित होता है:\n" +
+      "\n" +
+      "नियमित अपडेट्स: ConcreteAI का ज्ञान आधार और एल्गोरिदम नियमित रूप से अपडेट होते हैं। ये अपडेट नवीनतम निर्माण उद्योग के रुझानों और तकनीकी प्रगति के अनुरूप होते हैं।\n" +
+      "मशीन लर्निंग क्षमताएं: सिस्टम उपयोगकर्ता इंटरैक्शन के आधार पर विकसित होता है, औद्योगिक कार्यप्रणाली में स्वाभाविक रूप से होने वाली विभिन्न जरूरतों और समस्या समाधान प्रक्रियाओं से सीखता है।\n" +
+      "प्रासंगिकता और प्रभावशीलता: इसकी अनुकूलन क्षमता सुनिश्चित करती है कि ConcreteAI निर्माण क्षेत्र में आमतौर पर होने वाली चुनौतियों और अवसरों का सामना करने में सक्षम और प्रासंगिक बना रहता है।\n" +
+      "क्या आप जानना चाहेंगे कि ConcreteAI को आपकी कंपनी के संचालन के विशिष्ट पहलुओं के अनुरूप कैसे ढाला जा सकता है?\n",
+  },
+  {
+    Audioname:
+      "AJAX ConcreteAI के नए उपयोगकर्ताओं के लिए किस प्रकार का समर्थन और प्रशिक्षण प्रदान करता है?\n",
+    Answer:
+      "AJAX ConcreteAI के नए उपयोगकर्ताओं के लिए एक व्यापक समर्थन और प्रशिक्षण कार्यक्रम प्रदान करता है:\n" +
+      "\n" +
+      "विस्तृत उपयोगकर्ता मैनुअल: ConcreteAI की विशेषताओं को समझने में मदद के लिए संपूर्ण गाइड।\n" +
+      "ऑनलाइन ट्यूटोरियल: प्रभावी रूप से सिस्टम का उपयोग करने के तरीके पर शिक्षाप्रद सामग्री।\n" +
+      "हाथों पर प्रशिक्षण सत्र: सिस्टम कार्यक्षमताओं के साथ प्रत्यक्ष अनुभव प्रदान करना।\n" +
+      "निरंतर ग्राहक सहायता: किसी भी समस्या का समाधान करने के लिए लगातार सहायता, ताकि उपयोगकर्ता अपने संचालन में ConcreteAI का अधिकतम लाभ उठा सकें।\n" +
+      "ConcreteAI के बारे में और कोई प्रश्न हो तो पूछने में संकोच न करें।\n",
+  },
+];
+
 function HomeScreen() {
   const [query, setQuery] = useState(""); // State to hold the selected question
   const navigate = useNavigate();
@@ -163,8 +231,19 @@ function HomeScreen() {
   };
   const handleVideoSelect = (url) => {
     setSelectedVideoURL(url);
+
     console.log("URL Changed: ", url);
     setIsVideoPlayerVisible(true);
+  };
+
+  const handleGenderSelect = (genderOption) => {
+    setSelectedOption(genderOption);
+    setTooltipVisible(false); // Close the gender selection popup
+  };
+
+  const handleLanguageSelect = (languageOption) => {
+    setSelectedOptionLang(languageOption);
+    setTooltipVisibleLang(false); // Close the language selection popup
   };
 
   const handleQuestionClick = (question) => {
@@ -191,7 +270,7 @@ function HomeScreen() {
         </div>
 
         <div className="bg-container rounded-[0.625rem] py-[2.5rem] px-[1.875rem] w-full mt-[2.5rem]">
-          <p className=" text-[1.875rem] uppercase w-full text-white font-bold font-pop">
+          <p className=" text-[1.875rem] uppercase w-full text-white font-bold font-pop ml-[1.25rem]">
             Expert Series
           </p>
           <div className="w-full flex items-center justify-center mb-[1.25rem]">
@@ -225,47 +304,56 @@ function HomeScreen() {
               </motion.div>
             )}
           </div>
-          <div className="flex flex-row gap-[1.25rem] justify-center">
-            {videoData.map((video, index) => (
-              <VideoCardMain
-                key={index}
-                name={video.name}
-                description={video.description}
-                q1={video.q1}
-                q2={video.q2}
-                q3={video.q3}
-                q1URL={video.q1URL}
-                q2URL={video.q2URL}
-                q3URL={video.q3URL}
-                img={video.img}
-                onQuestionClick={handleVideoSelect} // Pass the function here
-              />
-            ))}
+          <div className=" overflow-auto ">
+            <div className=" w-fit flex flex-row pb-[0.625rem] gap-[1.25rem] mx-auto">
+              {videoData.map((video, index) => (
+                <VideoCardMain
+                  key={index}
+                  name={video.name}
+                  description={video.description}
+                  q1={video.q1}
+                  q2={video.q2}
+                  q3={video.q3}
+                  q1URL={video.q1URL}
+                  q2URL={video.q2URL}
+                  q3URL={video.q3URL}
+                  img={video.img}
+                  onQuestionClick={handleVideoSelect} // Pass the function here
+                />
+              ))}
+            </div>
           </div>
         </div>
         <div className="bg-container rounded-[0.625rem] py-[2.5rem] px-[1.875rem] w-full mt-[2.5rem]">
-          <p className=" text-[1.875rem] uppercase w-full text-white font-bold font-pop mb-[1.25rem]">
+          <p className=" text-[1.875rem] uppercase w-full text-white font-bold font-pop mb-[1.25rem] ml-[1.25rem]">
             Specialised Modules
           </p>
-          <div className="flex flex-row justify-center gap-[1.25rem] ">
-            {aiBots.map((AI, index) => (
-              <AICardMain key={index} {...AI} />
-            ))}
+          <div className="overflow-auto">
+            <div className="flex w-fit mx-auto pb-[0.625rem]  flex-row gap-[1.25rem] ">
+              {aiBots.map((AI, index) => (
+                <AICardMain key={index} {...AI} />
+              ))}
+            </div>
           </div>
         </div>
         <div className="bg-container rounded-[0.625rem] py-[2.5rem] pl-[1.875rem] w-full mt-[2.5rem]">
-          <p className=" text-[1.875rem] uppercase w-full text-white font-bold font-pop mb-[1.25rem]">
-            About CONCRETEAI
+          <p className=" text-[1.875rem] w-full text-white font-bold font-pop mb-[1.25rem] ml-[1.25rem]">
+            ABOUT ConcreteAI
           </p>
           <div className="flex flex-row gap-[1.25rem] justify-center ">
-            <div className="grid grid-cols-2 gap-[1.25rem] justify-items-center">
-              {audio.map((audio, index) => (
-                <AudioCardMain
-                  key={index}
-                  {...audio}
-                  selectedOption={selectedOption}
-                />
-              ))}
+            <div className="overflow-auto">
+              <div className="grid grid-cols-2  gap-[1.25rem] justify-items-center">
+                {(selectedOptionLang === 1 ? audio : audioHin).map(
+                  (audio, index) => (
+                    <AudioCardMain
+                      key={index}
+                      {...audio}
+                      selectedOption={selectedOption}
+                      selectedOptionLang={selectedOptionLang}
+                    />
+                  ),
+                )}
+              </div>
             </div>
             <div
               className={`cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#343563] flex items-center justify-center`}
@@ -292,17 +380,17 @@ function HomeScreen() {
                   className={`w-full text-left text-[1rem] font-pop p-4  rounded-lg ${
                     selectedOption === 1 ? "bg-white text-black" : "text-white"
                   }`}
-                  onClick={() => setSelectedOption(1)}
+                  onClick={() => handleGenderSelect(1)}
                 >
-                  Sanika
+                  Female
                 </button>
                 <button
                   className={`w-full text-left mt-2 text-[1rem] font-pop p-4  rounded-lg ${
                     selectedOption === 2 ? "bg-white text-black" : "text-white"
                   }`}
-                  onClick={() => setSelectedOption(2)}
+                  onClick={() => handleGenderSelect(2)}
                 >
-                  Sanjay
+                  Male
                 </button>
               </div>
             )}
@@ -326,22 +414,22 @@ function HomeScreen() {
             {isTooltipVisibleLang && (
               <div className="absolute right-[2.6rem]   w-40 bg-[#343563]  rounded-lg shadow-md flex flex-col items-start">
                 <button
-                  className={`w-full text-left text-[1rem] font-pop p-4  rounded-lg ${
+                  className={`w-full text-left text-[1rem] font-pop p-4 rounded-lg ${
                     selectedOptionLang === 1
                       ? "bg-white text-black"
                       : "text-white"
                   }`}
-                  onClick={() => setSelectedOptionLang(1)}
+                  onClick={() => handleLanguageSelect(1)}
                 >
                   English
                 </button>
                 <button
-                  className={`w-full text-left mt-2 text-[1rem] font-pop p-4  rounded-lg ${
+                  className={`w-full text-left mt-2 text-[1rem] font-pop p-4 rounded-lg ${
                     selectedOptionLang === 2
                       ? "bg-white text-black"
                       : "text-white"
                   }`}
-                  onClick={() => setSelectedOptionLang(2)}
+                  onClick={() => handleLanguageSelect(2)}
                 >
                   Hindi
                 </button>

@@ -54,7 +54,7 @@ async function interactWithWhisper() {
             {
               method: "POST",
               headers: {
-                Authorization: "Bearer ", // Replace with your API key
+                Authorization: "Bearer ${process.env.REACT_APP_OPENAI_API_KEY}", // Replace with your API key
               },
               body: formData,
             },

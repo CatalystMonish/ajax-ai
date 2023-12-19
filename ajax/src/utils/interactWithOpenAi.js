@@ -1,14 +1,12 @@
-import interactWithElevenLabs from "./interactWithElevenLabs.js";
 import { marked } from "marked";
 
 let globalThreadId = null;
 async function interactWithOpenAI(
   message,
-  isAloud,
   selectedOption,
   assistantId = "asst_Po9xlahc0bNt7EojFwqSPCSo",
 ) {
-  const OPENAI_API_KEY = ""; // Replace with your actual API key
+  const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY; // Replace with your actual API key
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -17,6 +15,7 @@ async function interactWithOpenAI(
 
   // Create a new thread only if globalThreadId is not set
   if (!globalThreadId) {
+    console.log("Creating new thread: https://api.openai.com/v1/threads");
     const threadResponse = await fetch("https://api.openai.com/v1/threads", {
       method: "POST",
       headers: headers,
@@ -26,44 +25,43 @@ async function interactWithOpenAI(
   }
 
   // Create a message in the existing or new thread
-  await fetch(`https://api.openai.com/v1/threads/${globalThreadId}/messages`, {
+  const messageUrl = `https://api.openai.com/v1/threads/${globalThreadId}/messages`;
+  console.log("Creating message:", messageUrl);
+  await fetch(messageUrl, {
     method: "POST",
     headers: headers,
     body: JSON.stringify({ role: "user", content: message }),
   });
 
   // Create a run
-  const runResponse = await fetch(
-    `https://api.openai.com/v1/threads/${globalThreadId}/runs`,
-    {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify({ assistant_id: assistantId }), // Use the passed assistantId or the default
-    },
-  );
+  const runUrl = `https://api.openai.com/v1/threads/${globalThreadId}/runs`;
+  console.log("Creating run:", runUrl);
+  const runResponse = await fetch(runUrl, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify({ assistant_id: assistantId }), // Use the passed assistantId or the default
+  });
   const runData = await runResponse.json();
   const runId = runData.id;
 
   // Wait for the run to complete
   let runStatus;
   do {
-    const statusResponse = await fetch(
-      `https://api.openai.com/v1/threads/${globalThreadId}/runs/${runId}`,
-      {
-        headers: headers,
-      },
-    );
+    const statusUrl = `https://api.openai.com/v1/threads/${globalThreadId}/runs/${runId}`;
+    console.log("Checking run status:", statusUrl);
+    const statusResponse = await fetch(statusUrl, {
+      headers: headers,
+    });
     runStatus = await statusResponse.json();
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
   } while (!runStatus.completed_at);
 
   // Retrieve all messages in the thread
-  const messagesResponse = await fetch(
-    `https://api.openai.com/v1/threads/${globalThreadId}/messages`,
-    {
-      headers: headers,
-    },
-  );
+  const messagesUrl = `https://api.openai.com/v1/threads/${globalThreadId}/messages`;
+  console.log("Retrieving messages:", messagesUrl);
+  const messagesResponse = await fetch(messagesUrl, {
+    headers: headers,
+  });
   const messagesData = await messagesResponse.json();
 
   if (messagesData.data.length === 0) {
@@ -73,40 +71,28 @@ async function interactWithOpenAI(
   // Access the first message in the array, as the messages appear to be in reverse chronological order
   const lastMessage = messagesData.data[0];
 
-  // Check if the content array exists and has at least one item
-  if (!lastMessage.content || lastMessage.content.length === 0) {
-    throw new Error("Last message has no content.");
-  }
-
   // Extracting the text value from the first item of the content array
   const latestMessageText = lastMessage.content[0].text.value;
 
   const cleanText = (text) => {
-    // Make sure your regex is correct to remove the desired patterns
-    return text.replace(
-      /&#8203;``&#8203;``【oaicite:0】``&#8203;``&#8203;]*】/g,
-      "",
-    );
+    const regex = /【\d+†source】/g;
+    return text.replace(regex, "");
   };
 
   const stripHtml = (html) => {
-    // Regular expression to remove HTML tags
     return html.replace(/<[^>]*>/g, "");
   };
 
   const createPlainTextFromMarkdown = () => {
     const cleanedMessage = cleanText(latestMessageText);
     const html = marked(cleanedMessage);
-    return stripHtml(html); // Convert HTML to plain text
+    return stripHtml(html);
   };
 
-  if (isAloud) {
-    const plainText = createPlainTextFromMarkdown();
-    const voiceId =
-      selectedOption === 2 ? "LrYtPz3RwneBN65UhzNl" : "2zRM7PkgwBPiau2jvVXc"; // Default voice ID
-    await interactWithElevenLabs(plainText, voiceId);
-  }
-  return latestMessageText;
+  // Convert Markdown to plain text (if needed)
+  const plainText = createPlainTextFromMarkdown();
+
+  return plainText; // Return plain text instead of HTML or Markdown
 }
 
 export default interactWithOpenAI;

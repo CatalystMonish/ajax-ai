@@ -1,18 +1,24 @@
-const ELEVENLABS_API_KEY = ""; // Your ElevenLabs API key
+const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY; // Your ElevenLabs API key
 
 async function interactWithElevenLabs(
   text,
-  voiceID = "2zRM7PkgwBPiau2jvVXc",
+  voiceID = "YtvAvGwjGulirnsSTIgn",
   onStart,
   onEnd,
+  selectedOptionLang = 1,
 ) {
   const elevenLabsHeaders = {
     "Content-Type": "application/json",
     "xi-api-key": ELEVENLABS_API_KEY,
   };
 
+  const modelId =
+    selectedOptionLang === 1 ? "eleven_turbo_v2" : "eleven_multilingual_v2";
+  console.log("Using model:", modelId); // Log the model used
+  console.log("Text to be converted:", text); // Log the text
+
   const elevenLabsData = {
-    model_id: "eleven_turbo_v2",
+    model_id: modelId,
     text: text,
     voice_settings: {
       similarity_boost: 0.5,
@@ -21,7 +27,6 @@ async function interactWithElevenLabs(
       use_speaker_boost: true,
     },
   };
-
   try {
     const elevenLabsResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceID}`,

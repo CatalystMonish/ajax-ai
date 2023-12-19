@@ -74,4 +74,25 @@ body {
   width: calc(100vw - 26.125rem);
 }
 
+.overflow-auto {
+
+
+  scrollbar-color: #2E2E54 grey; /* For Firefox: thumb (solid color) and track color */
+}
+
+/* Styles for Webkit browsers like Chrome, Safari */
+.overflow-auto::-webkit-scrollbar {
+  margin-top: 10px;
+  background: #6948c9; /* Background of the scrollbar */
+  background-radius: 100px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+  background: #2E2E54; /* Solid color for the scrollbar thumb */
+
+}
+
+.overflow-auto::-webkit-scrollbar-thumb:hover {
+  background: #1D1D47; /* Darker color of the thumb on hover (manually chosen) */
+}
 
