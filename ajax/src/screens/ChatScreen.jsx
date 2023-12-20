@@ -7,12 +7,16 @@ import Lottie from "lottie-react";
 import loadingAnimation from "../lottie/load.json";
 import typingAnimation from "../lottie/typing.json";
 import interactWithWhisper from "../utils/interactWithWhisper";
+import showPreviousThreads from "../utils/showPreviousThreads.js";
+import { getThreadMetadata } from "../utils/getThreadMetadata.js";
 import ajax from "../images/ajax.png";
 import hse from "../images/hse.png";
 import printer from "../images/3d-printer.png";
 import factory from "../images/factory.png";
 import StarterQuestions from "../components/StarterQuestions.jsx";
 import interactWithElevenLabs from "../utils/interactWithElevenLabs.js"; // Import the function
+import { AnimatePresence, motion } from "framer-motion";
+import { UserAuth } from "../context/AuthContext.jsx";
 
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
@@ -84,13 +88,11 @@ function ChatScreen() {
   const initialIsAloud = localStorage.getItem("isAloud") === "true";
   const [isAloud, setIsAloud] = useState(initialIsAloud);
   const [isTooltipVisible, setTooltipVisible] = useState(false);
-  const initialSelectedOption =
-    parseInt(localStorage.getItem("selectedOption"), 10) || 1;
+  const initialSelectedOption = parseInt(localStorage.getItem("selectedOption"), 10) || 1;
   const [selectedOption, setSelectedOption] = useState(initialSelectedOption);
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
-  const initialAIBotName =
-    localStorage.getItem("selectedAIBot") || aiBots[0].AIName;
+  const initialAIBotName = localStorage.getItem("selectedAIBot") || aiBots[0].AIName;
 
   // Find the corresponding AI bot object based on the initialAIBotName
   const initialAIBot =
@@ -101,6 +103,13 @@ function ChatScreen() {
   const [currentLoadingText, setCurrentLoadingText] = useState("");
   const [starterQuestionSelected, setStarterQuestionSelected] = useState(false);
   const [whisperActive, setWhisperActive] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
+  const { user } = UserAuth();
+  const [showThreads, setshowThreads] = useState(false);
+  const [previousMessage, setPreviousMessage] = useState({});
+  const [threads, setThreads] = useState([]);
+  const userId = user ? user.uid : null;
+
   useEffect(() => {
     localStorage.setItem("isAloud", isAloud.toString());
   }, [isAloud]);
@@ -115,6 +124,11 @@ function ChatScreen() {
   useEffect(() => {
     localStorage.setItem("selectedOption", selectedOption.toString());
   }, [selectedOption]);
+
+  const variants = {
+    open: { width: "26.125rem", opacity: 1, background: "#3E3E72" }, // Adjust width to your original size
+    closed: { width: "10rem", opacity: 1 },
+  };
 
   const handlePlayAudio = async (response) => {
     setIsLoading(true);
@@ -212,10 +226,51 @@ function ChatScreen() {
     setQuery(""); // Clear the input box immediately
   };
 
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const handleThreadClick = async (threadId, index) => {
+    try {
+      // Update the state with the selected timestamp or index
+      setSelectedItem(threadId);
+      
+      // Fetch metadata from OpenAI API
+      const metadata = await getThreadMetadata(threadId);
+  
+      // Extract messages from the metadata
+      const threadMessages = metadata.messageDictionary[threadId] || [];
+      setMessages([]);
+      // Formatted messages array to be added to the state
+      const formattedMessages = [];
+  
+      // Iterate over messages in forward order and add to formattedMessages array
+      for (let i = 0; i < threadMessages.length; i++) {
+        const message = threadMessages[i];
+  
+        // Determine if the message is from the user or the assistant
+        const isUser = message.hasOwnProperty('message');
+  
+        formattedMessages.push({ isUser, message: message.message || message.response });
+      }
+  
+      // Update the state with the formatted messages array
+      setMessages((prevMessages) => [...prevMessages, ...formattedMessages]);
+  
+      // Uncomment the line below if you want to log the thread metadata
+      // console.log('Thread Metadata:', metadata);
+    } catch (error) {
+      // Handle the error if needed
+      console.error('Error handling thread click:', error);
+    }
+  };
+  
+  
+
+
   const handleRefreshChat = () => {
     window.location.reload();
     setQuery(""); // This line is not necessary as the page will be reloaded
   };
+
 
   const handleQueryChange = (e) => {
     setQuery(e.target.value);
@@ -236,7 +291,8 @@ function ChatScreen() {
     ]);
 
     try {
-      const response = await interactWithOpenAI(currentQuery, selectedOption);
+      const response = await interactWithOpenAI(currentQuery, selectedOption, userId);
+
       if (typeof response === "string") {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -246,12 +302,35 @@ function ChatScreen() {
         if (isAloud) {
           handlePlayAudio(response);
         }
+        // saveThreads(userId, threadId, runId, currentQuery, response);
       }
       // Add additional handling for complex response if needed
     } catch (error) {
       console.error("Error interacting with OpenAI:", error);
     }
     setIsLoading(false);
+  };
+
+  const handleshowthreads = async () => {
+    const { threadIds, timestamps } = await showPreviousThreads(userId);
+
+    const threadData = {};
+    threadIds.forEach((threadId, index) => {
+      threadData[threadId] = timestamps[index];
+    });
+  
+    setPreviousMessage(threadData);
+    // setThreads(threadIds);
+    setshowThreads(!showThreads);
+  }
+
+  const formatTimestamp = (timestamp) => {
+    // Extract seconds and nanoseconds from the timestamp object
+    const { seconds, nanoseconds } = timestamp || {};
+
+    // Implement your logic to format the timestamp to a string here
+    // For example, using toLocaleString or a date library
+    return seconds ? new Date(seconds * 1000).toLocaleString() : '';
   };
 
   const activeAIQuestions = [
@@ -281,6 +360,7 @@ function ChatScreen() {
       const response = await interactWithOpenAI(
         transcriptionText,
         selectedOption,
+        userId
       );
       setIsLoading(false); // Set loading to false after getting the response
 
@@ -311,41 +391,133 @@ function ChatScreen() {
   return (
     <div className="bg-background">
       <div className="flex flex-row w-screen">
-        <div className=" bg-[#3E3E72] flex-shrink-0 w-[26.125rem] h-screen pt-[1rem] ">
-          <div
-            onClick={goHome}
-            className="flex items-center justify-center w-[3.125rem] h-[3.125rem] bg-white rounded-full cursor-pointer mb-[2rem] ml-[1.25rem]"
+        <div className={`h-full ${!isOpen && ""}  h-screen`}>
+
+          <motion.div
+            className="inset-y-0 left-0 z-30 p-5 bg-[#3E3E72] flex flex-col h-full"
+            initial="closed"
+            animate={isOpen ? "open" : "close"}
+            variants={variants}
+            transition={{ duration: 0.3 }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-6 h-6 text-black"
+            <div
+              onClick={goHome}
+              className="flex items-center justify-center w-[3.125rem] h-[3.125rem] bg-white rounded-full cursor-pointer ml-[1.25rem]"
             >
-              <path
-                fillRule="evenodd"
-                d="M20.25 12a.75.75 0 01-.75.75H6.31l5.47 5.47a.75.75 0 11-1.06 1.06l-6.75-6.75a.75.75 0 010-1.06l6.75-6.75a.75.75 0 111.06 1.06l-5.47 5.47H19.5a.75.75 0 01.75.75z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          {aiBots.map((aiBot, index) => (
-            <ChatCard
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-6 h-6 text-black"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M20.25 12a.75.75 0 01-.75.75H6.31l5.47 5.47a.75.75 0 11-1.06 1.06l-6.75-6.75a.75.75 0 010-1.06l6.75-6.75a.75.75 0 111.06 1.06l-5.47 5.47H19.5a.75.75 0 01.75.75z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <button
+              className="flex text-[1.5rem] bg-[#363662]  shadow-xl p-s-10 rounded-[5px] mt-[0.625rem] ml-auto mb-m-10"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className={`w-[15px] h-[15px] transform transition-transform ${!isOpen ? "rotate-180" : ""
+                  }`}
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.72 12.53a.75.75 0 010-1.06l7.5-7.5a.75.75 0 111.06 1.06L9.31 12l6.97 6.97a.75.75 0 11-1.06 1.06l-7.5-7.5z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {isOpen ? (
+              aiBots.map((aiBot, index) => (
+                <ChatCard
+                  key={index}
+                  {...aiBot}
+                  onClick={() => handleChatCardClick(aiBot)}
+                  isActive={activeAIBot.AIName === aiBot.AIName}
+                >
+                  {isOpen ? aiBot.AIName : <ChatCard
+                    key={index}
+                    AIPicture={aiBot.AIPicture}
+                    AIName="heloooo"// Pass only AIPicture to ChatCard
+                    onClick={() => handleChatCardClick(aiBot)}
+                    isActive={activeAIBot.AIName === aiBot.AIName}
+                  />}
+                </ChatCard>
+              ))
+            ) : (
+              aiBots.map((aiBot, index) => (
+                <ChatCard
+                  key={index}
+                  AIPicture={aiBot.AIPicture}  // Pass only AIPicture to ChatCard
+                  onClick={() => handleChatCardClick(aiBot)}
+                  isActive={activeAIBot.AIName === aiBot.AIName}
+                />
+              ))
+            )}
+            <div className="flex items-center">
+              <div className="text-[1.125rem] font-pop font-medium text-highlight mt-[1rem] mr-2">Previous Messages</div>
+              <button
+                className="flex text-[1.5rem] bg-[#363662]  shadow-xl p-s-10 rounded-[5px] mt-[0.625rem] ml-auto mb-m-10"
+                onClick={() => handleshowthreads()}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className={`w-[15px] h-[15px] transform transition-transform ${showThreads ? "-rotate-90" : ""
+                    }`}
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.72 12.53a.75.75 0 010-1.06l7.5-7.5a.75.75 0 111.06 1.06L9.31 12l6.97 6.97a.75.75 0 11-1.06 1.06l-7.5-7.5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <AnimatePresence>
+  {showThreads && (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      style={{ overflow: 'hidden' }}
+    >
+      <div className="max-h-60 overflow-auto">
+        <ul className="text-highlight font-pop font-medium">
+          {Object.entries(previousMessage).map(([threadId, timestamp], index) => (
+            <li
               key={index}
-              {...aiBot}
-              onClick={() => handleChatCardClick(aiBot)}
-              isActive={activeAIBot.AIName === aiBot.AIName}
-            />
+              className={`p-[1rem] ${threadId === selectedItem ? 'bg-[#343563]' : ''} hover:bg-[#343563] cursor-pointer`}
+              onClick={() => handleThreadClick(threadId, index)}
+            >
+              {formatTimestamp(timestamp)}
+            </li>
           ))}
+        </ul>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+          </motion.div>
         </div>
-        <div className="h-screen flex-shrink-0 flex flex-col width-subtract items-center">
+        <div className="h-screen flex-grow flex flex-col width-subtract items-center">
           <div className="mt-[1.25rem]  w-full flex items-center justify-center">
             <img src={logo} className=" relative pb-[1.25rem]" />
             <div
               onClick={toggleAudio}
-              className={`absolute flex right-0 mr-[3.75rem] cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#3E3E72] items-center justify-center ${
-                isAloud ? "border-2" : ""
-              }`}
+              className={`absolute flex right-0 mr-[3.75rem] cursor-pointer w-[3.375rem] h-[3.375rem] rounded-full bg-[#3E3E72] items-center justify-center ${isAloud ? "border-2" : ""
+                }`}
             >
               {isAloud ? (
                 <svg
@@ -390,17 +562,15 @@ function ChatScreen() {
             {isTooltipVisible && (
               <div className="absolute z-10 right-[11.5rem] top-0 mt-[2rem] w-40 bg-[#3e3e72]  rounded-lg shadow-md flex flex-col items-start">
                 <button
-                  className={`w-full text-left text-[1rem] font-pop p-4  rounded-lg ${
-                    selectedOption === 1 ? "bg-white text-black" : "text-white"
-                  }`}
+                  className={`w-full text-left text-[1rem] font-pop p-4  rounded-lg ${selectedOption === 1 ? "bg-white text-black" : "text-white"
+                    }`}
                   onClick={() => handleGenderSelect(1)}
                 >
                   Female
                 </button>
                 <button
-                  className={`w-full text-left mt-2 text-[1rem] font-pop p-4  rounded-lg ${
-                    selectedOption === 2 ? "bg-white text-black" : "text-white"
-                  }`}
+                  className={`w-full text-left mt-2 text-[1rem] font-pop p-4  rounded-lg ${selectedOption === 2 ? "bg-white text-black" : "text-white"
+                    }`}
                   onClick={() => handleGenderSelect(2)}
                 >
                   Male
@@ -428,7 +598,7 @@ function ChatScreen() {
 
           {/* Display Messages */}
 
-          <div className="overflow-y-auto pb-[18.75rem] w-full">
+          <div className="overflow-auto pb-[18.75rem] w-full">
             {messages.map((msg, index) => (
               <ChatMessageBubble
                 key={index}

@@ -4,6 +4,7 @@ async function interactWithWhisper() {
     const audioContext = new AudioContext();
     const source = audioContext.createMediaStreamSource(stream);
     const processor = audioContext.createScriptProcessor(1024, 1, 1);
+    const OPENAI_API_KEY =import.meta.env.VITE_OPENAI_API_KEY;
 
     let audioChunks = [];
     const mediaRecorder = new MediaRecorder(stream);
@@ -54,7 +55,7 @@ async function interactWithWhisper() {
             {
               method: "POST",
               headers: {
-                Authorization: "Bearer ${process.env.REACT_APP_OPENAI_API_KEY}", // Replace with your API key
+                Authorization: `Bearer ${OPENAI_API_KEY}`, // Replace with your API key
               },
               body: formData,
             },

@@ -21,6 +21,7 @@ import Lottie from "lottie-react";
 import typingAnimation from "../lottie/typing.json";
 import loadingAnimation from "../lottie/load.json";
 import { useNavigate } from "react-router-dom";
+import TopBar from "../components/TopBar.jsx";
 
 const aiBots = [
   {
@@ -261,6 +262,7 @@ function HomeScreen() {
 
   return (
     <AnimatePresence>
+      <TopBar />
       <div className="bg-background flex items-center flex-col py-[3.125rem] px-[2.5rem] pb-[12.5rem]">
         <p className="absolute text-[3.125rem] text-white font-bold font-pop">
           ConcreteAI
