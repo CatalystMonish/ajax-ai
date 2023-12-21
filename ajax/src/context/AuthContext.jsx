@@ -24,7 +24,10 @@ export const AuthContextProvider = ({ children }) => {
   const logOut = () => {
     signOut(auth);
   };
-
+  const goHome = () => {
+    // Use react-router-dom's navigate to go back to the home page
+    navigate("/", { replace: true });
+  };
   const checkAndCreateUserDoc = async (currentUser) => {
     const userRef = doc(db, "users", currentUser.uid);
     const userSnap = await getDoc(userRef);
@@ -48,16 +51,17 @@ export const AuthContextProvider = ({ children }) => {
 
       if (currentUser) {
         await checkAndCreateUserDoc(currentUser);
+        
       }
     });
 
-    return () => {
+    return () => {  
       unsubscribe();
     };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ googleSignIn, logOut, user }}>
+    <AuthContext.Provider value={{ googleSignIn, logOut, user}}>
       {children}
     </AuthContext.Provider>
   );

@@ -19,12 +19,18 @@ function LoginScreen() {
 
   useEffect(() => {
     if (user) {
-      navigate("/");
       const name = user?.displayName;
       console.log(user);
       console.log("User", name);
+      console.log(window.location.pathname);
+      if (window.location.pathname === "/chat") {
+        navigate("/chat");
+      } else {
+        navigate("/");
+      }
     }
   }, [user, navigate]);
+  
 
   return (
     <div className="relative w-full h-full">

@@ -107,7 +107,7 @@ function ChatScreen() {
   const { user } = UserAuth();
   const [showThreads, setshowThreads] = useState(false);
   const [previousMessage, setPreviousMessage] = useState({});
-  const [threads, setThreads] = useState([]);
+  const [threadId, setThreadId] = useState(null);
   const userId = user ? user.uid : null;
 
   useEffect(() => {
@@ -198,32 +198,16 @@ function ChatScreen() {
     };
   }, [isLoading]);
 
-  useEffect(() => {
-    const hasUsedState = localStorage.getItem("hasUsedState") === "true";
-
-    if (!hasUsedState && state?.AIName) {
-      const aiNameLower = state.AIName.toLowerCase();
-      const aiBotIndex = aiBots.findIndex(
-        (aiBot) => aiBot.AIName.toLowerCase() === aiNameLower,
-      );
-      if (aiBotIndex !== -1) {
-        setActiveAIBot(aiBots[aiBotIndex]);
-      }
-    }
-
-    // Check if the state has not been used and there is a question in the state
-    if (!hasUsedState && state?.question && state.question !== "") {
-      setQuery(state.question);
-      setStarterQuestionSelected(true);
-      localStorage.setItem("hasUsedState", "true"); // Update this to true as we have used the state
-    }
-  }, [state]);
+  
 
   const handleChatCardClick = (aiBot) => {
     localStorage.setItem("selectedAIBot", aiBot.AIName);
-
-    window.location.reload();
+    localStorage.setItem("aiBot", JSON.stringify(aiBot));
+    setActiveAIBot(aiBot);
+    setThreadId(null);
+    setMessages([]);
     setQuery(""); // Clear the input box immediately
+    // window.location.replace("/chat");
   };
 
   const [selectedItem, setSelectedItem] = useState(null);
@@ -231,8 +215,10 @@ function ChatScreen() {
   const handleThreadClick = async (threadId, index) => {
     try {
       // Update the state with the selected timestamp or index
+      console.log(threadId);
+      setThreadId(threadId);
       setSelectedItem(threadId);
-      
+     
       // Fetch metadata from OpenAI API
       const metadata = await getThreadMetadata(threadId);
   
@@ -254,7 +240,7 @@ function ChatScreen() {
   
       // Update the state with the formatted messages array
       setMessages((prevMessages) => [...prevMessages, ...formattedMessages]);
-  
+      // console.log(selectedItem);
       // Uncomment the line below if you want to log the thread metadata
       // console.log('Thread Metadata:', metadata);
     } catch (error) {
@@ -267,7 +253,8 @@ function ChatScreen() {
 
 
   const handleRefreshChat = () => {
-    window.location.reload();
+    setThreadId(null);
+    setMessages([]);
     setQuery(""); // This line is not necessary as the page will be reloaded
   };
 
@@ -291,7 +278,8 @@ function ChatScreen() {
     ]);
 
     try {
-      const response = await interactWithOpenAI(currentQuery, selectedOption, userId);
+      console.log("Before the interact call "+ threadId);
+      const response = await interactWithOpenAI(currentQuery, selectedOption, userId, threadId, setThreadId);
 
       if (typeof response === "string") {
         setMessages((prevMessages) => [
@@ -320,7 +308,7 @@ function ChatScreen() {
     });
   
     setPreviousMessage(threadData);
-    // setThreads(threadIds);
+    setIsOpen(true);
     setshowThreads(!showThreads);
   }
 
@@ -343,6 +331,14 @@ function ChatScreen() {
     setIsAloud(!isAloud); // This will trigger the useEffect above
   };
 
+  useEffect(() => {
+    const initialAIBotName =
+      localStorage.getItem("selectedAIBot") || aiBots[0].AIName;
+    const initialAIBot =
+      aiBots.find((aiBot) => aiBot.AIName === initialAIBotName) || aiBots[0];
+    setActiveAIBot(initialAIBot);
+  }, [aiBots]);
+  
   const useWhisper = async () => {
     setWhisperActive(true);
     setStarterQuestionSelected(true);
@@ -359,8 +355,7 @@ function ChatScreen() {
       // Use the transcription as input to interactWithOpenAI
       const response = await interactWithOpenAI(
         transcriptionText,
-        selectedOption,
-        userId
+        selectedOption, userId, threadId, setThreadId
       );
       setIsLoading(false); // Set loading to false after getting the response
 
@@ -419,7 +414,7 @@ function ChatScreen() {
             </div>
             <button
               className="flex text-[1.5rem] bg-[#363662]  shadow-xl p-s-10 rounded-[5px] mt-[0.625rem] ml-auto mb-m-10"
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => {setIsOpen(!isOpen); setshowThreads(false);}}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -436,32 +431,29 @@ function ChatScreen() {
               </svg>
             </button>
             {isOpen ? (
-              aiBots.map((aiBot, index) => (
-                <ChatCard
-                  key={index}
-                  {...aiBot}
-                  onClick={() => handleChatCardClick(aiBot)}
-                  isActive={activeAIBot.AIName === aiBot.AIName}
-                >
-                  {isOpen ? aiBot.AIName : <ChatCard
-                    key={index}
-                    AIPicture={aiBot.AIPicture}
-                    AIName="heloooo"// Pass only AIPicture to ChatCard
-                    onClick={() => handleChatCardClick(aiBot)}
-                    isActive={activeAIBot.AIName === aiBot.AIName}
-                  />}
-                </ChatCard>
-              ))
-            ) : (
-              aiBots.map((aiBot, index) => (
-                <ChatCard
-                  key={index}
-                  AIPicture={aiBot.AIPicture}  // Pass only AIPicture to ChatCard
-                  onClick={() => handleChatCardClick(aiBot)}
-                  isActive={activeAIBot.AIName === aiBot.AIName}
-                />
-              ))
-            )}
+  aiBots.map((aiBot, index) => (
+    <ChatCard
+      key={index}
+      {...aiBot}
+      isActive={activeAIBot.AIName === aiBot.AIName}
+      onClick={() => handleChatCardClick(aiBot)}
+      
+    >
+
+      {isOpen ? aiBot.AIName : null}
+    </ChatCard>
+  ))
+) : (
+  aiBots.map((aiBot, index) => (
+    <ChatCard
+      key={index}
+      AIPicture={aiBot.AIPicture}
+      isActive={activeAIBot.AIName === aiBot.AIName}
+      onClick={() => handleChatCardClick(aiBot)}
+    />
+  ))
+)}
+
             <div className="flex items-center">
               <div className="text-[1.125rem] font-pop font-medium text-highlight mt-[1rem] mr-2">Previous Messages</div>
               <button

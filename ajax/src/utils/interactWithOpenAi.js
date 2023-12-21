@@ -3,13 +3,18 @@ import {UserAuth} from "../context/AuthContext"
 import { doc, collection, serverTimestamp, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase.js";
 
-let globalThreadId = null;
+// let threadId = null;
 async function interactWithOpenAI(
   message,
   selectedOption,
   userId,
+  threadId,
+  setThreadId,
   assistantId = "asst_Po9xlahc0bNt7EojFwqSPCSo",
 ) {
+  let currentThreadId= threadId;
+  // console.log(threadId);
+
   const OPENAI_API_KEY =import.meta.env.VITE_OPENAI_API_KEY; // Replace with your actual API key
   const headers = {
     "Content-Type": "application/json",
@@ -17,19 +22,20 @@ async function interactWithOpenAI(
     "OpenAI-Beta": "assistants=v1",
   };
 
-  // Create a new thread only if globalThreadId is not set
-  if (!globalThreadId) {
+  // Create a new thread only if threadId is not set
+  if (!currentThreadId) {
     console.log("Creating new thread: https://api.openai.com/v1/threads");
     const threadResponse = await fetch("https://api.openai.com/v1/threads", {
       method: "POST",
       headers: headers,
     });
     const threadData = await threadResponse.json();
-    globalThreadId = threadData.id;
+    setThreadId( threadData.id);
+    currentThreadId=threadData.id;
   }
-
+  // console.log(currentThreadId);
   // Create a message in the existing or new thread
-  const messageUrl = `https://api.openai.com/v1/threads/${globalThreadId}/messages`;
+  const messageUrl = `https://api.openai.com/v1/threads/${currentThreadId}/messages`;
   console.log("Creating message:", messageUrl);
   await fetch(messageUrl, {
     method: "POST",
@@ -38,7 +44,7 @@ async function interactWithOpenAI(
   });
 
   // Create a run
-  const runUrl = `https://api.openai.com/v1/threads/${globalThreadId}/runs`;
+  const runUrl = `https://api.openai.com/v1/threads/${currentThreadId}/runs`;
   console.log("Creating run:", runUrl);
   const runResponse = await fetch(runUrl, {
     method: "POST",
@@ -51,7 +57,7 @@ async function interactWithOpenAI(
   // Wait for the run to complete
   let runStatus;
   do {
-    const statusUrl = `https://api.openai.com/v1/threads/${globalThreadId}/runs/${runId}`;
+    const statusUrl = `https://api.openai.com/v1/threads/${currentThreadId}/runs/${runId}`;
     console.log("Checking run status:", statusUrl);
     const statusResponse = await fetch(statusUrl, {
       headers: headers,
@@ -103,7 +109,7 @@ async function interactWithOpenAI(
 
   
   // Retrieve all messages in the thread
-  const messagesUrl = `https://api.openai.com/v1/threads/${globalThreadId}/messages`;
+  const messagesUrl = `https://api.openai.com/v1/threads/${currentThreadId}/messages`;
   console.log("Retrieving messages:", messagesUrl);
   const messagesResponse = await fetch(messagesUrl, {
     headers: headers,
@@ -137,7 +143,7 @@ async function interactWithOpenAI(
 
   // Convert Markdown to plain text (if needed)
   const plainText = createPlainTextFromMarkdown();
-  saveThreads(userId, globalThreadId);
+  saveThreads(userId, currentThreadId);
 
   return plainText; // Return plain text instead of HTML or Markdown
 }
