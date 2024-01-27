@@ -7,7 +7,7 @@ import AICardQuestion from "./AICardQuestion.jsx";
 function AICardMain({ AIName, AIDescription, AIPicture, Q1, Q2, Q3, Q4 }) {
   const navigate = useNavigate();
   localStorage.setItem("hasUsedState", "false");
-  const handleQuestionClick = (question) => {
+  const handleQuestionClick = (question, AIName) => {
     navigate("/chat", { state: { question, AIName } });
   };
   return (

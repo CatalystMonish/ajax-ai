@@ -1,17 +1,17 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-// import { getStorage, ref, uploadBytes } from "firebase/storage";
 import {
   GoogleAuthProvider,
-  signInWithRedirect,
+  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   signInWithPopup,
+  createUserWithEmailAndPassword, 
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase.js";
-const AuthContext = createContext();
-
+import React, { createContext, useContext, useEffect, useState } from "react";
 // ... (other imports)
+
+const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -21,27 +21,36 @@ export const AuthContextProvider = ({ children }) => {
     signInWithPopup(auth, provider);
   };
 
+  const emailSignIn = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const currentUser = userCredential.user;
+      setUser(currentUser);
+      await checkAndCreateUserDoc(currentUser);
+    } catch (error) {
+      console.error("Error signing in with email and password:", error.message);
+      // Handle error (e.g., display an error message to the user)
+    }
+  };
+
+  const signUp = async (email, password) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUser = userCredential.user;
+      setUser(newUser);
+      await checkAndCreateUserDoc(newUser); // If you have logic to create a document in Firestore for new users
+    } catch (error) {
+      console.error("Error signing up:", error.message);
+      // Handle error (e.g., display an error message to the user)
+    }
+  };
+
   const logOut = () => {
     signOut(auth);
   };
-  const goHome = () => {
-    // Use react-router-dom's navigate to go back to the home page
-    navigate("/", { replace: true });
-  };
-  const checkAndCreateUserDoc = async (currentUser) => {
-    const userRef = doc(db, "users", currentUser.uid);
-    const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists()) {
-      const { displayName, email, photoURL, emailVerified } = currentUser;
-      await setDoc(userRef, {
-        displayName,
-        email,
-        photoURL,
-        emailVerified,
-        // Add any other necessary fields here.
-      });
-    }
+  const checkAndCreateUserDoc = async (currentUser) => {
+    // ... (existing code)
   };
 
   useEffect(() => {
@@ -51,24 +60,22 @@ export const AuthContextProvider = ({ children }) => {
 
       if (currentUser) {
         await checkAndCreateUserDoc(currentUser);
-        
       }
     });
 
-    return () => {  
+    return () => {
       unsubscribe();
     };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ googleSignIn, logOut, user}}>
+    <AuthContext.Provider value={{ googleSignIn, emailSignIn, logOut, signUp, user }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 // ... (other code)
-
 export const UserAuth = () => {
   return useContext(AuthContext);
 };

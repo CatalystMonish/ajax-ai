@@ -1,5 +1,5 @@
-import { doc, collection, serverTimestamp, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../firebase.js";
+import { doc, collection, getDoc } from "firebase/firestore";
+import { db } from "../firebase.js";
 
 const showPreviousThreads = async (userId) => {
     try {
@@ -24,12 +24,15 @@ const showPreviousThreads = async (userId) => {
                 return { threadIds, timestamps };
             } else {
                 console.log('User data is empty.');
+                return { threadIds: [], timestamps: [] };
             }
         } else {
             console.log('User document does not exist.');
+            return { threadIds: [], timestamps: [] };
         }
     } catch (error) {
         console.error('Error retrieving threads from Firestore:', error);
+        return { threadIds: [], timestamps: [] }; // Return empty result set on error
     }
 };
 

@@ -56,7 +56,7 @@ function AudioCardMain({
       <div
         className="bg-[#535497] w-[5rem] h-[5rem] rounded-full flex items-center justify-center flex-shrink-0"
         onClick={
-          isLoading ? undefined : isPlaying ? handleStopAudio : handlePlayAudio
+          isLoading ? undefined : isPlaying ? handleStopAudio : handlePlayAudio 
         }
       >
         {isPlaying ? (

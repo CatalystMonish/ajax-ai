@@ -105,7 +105,7 @@ function ChatScreen() {
   const [whisperActive, setWhisperActive] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const { user } = UserAuth();
-  const [showThreads, setshowThreads] = useState(false);
+  const [showThreads, setshowThreads] = useState(true);
   const [previousMessage, setPreviousMessage] = useState({});
   const [threadId, setThreadId] = useState(null);
   const userId = user ? user.uid : null;
@@ -113,6 +113,7 @@ function ChatScreen() {
   useEffect(() => {
     localStorage.setItem("isAloud", isAloud.toString());
   }, [isAloud]);
+
   const goHome = async () => {
     navigate("/");
   };
@@ -120,6 +121,15 @@ function ChatScreen() {
     setQuery(question);
     setStarterQuestionSelected(true); // Add this line
   };
+
+  useEffect(() => {
+    if (location.state && location.state.question) {
+      setQuery(location.state.question);
+      setStarterQuestionSelected(true);
+    } else {
+      setQuery("");
+    }
+  }, [location.state]);
 
   useEffect(() => {
     localStorage.setItem("selectedOption", selectedOption.toString());
@@ -240,22 +250,19 @@ function ChatScreen() {
   
       // Update the state with the formatted messages array
       setMessages((prevMessages) => [...prevMessages, ...formattedMessages]);
-      // console.log(selectedItem);
-      // Uncomment the line below if you want to log the thread metadata
-      // console.log('Thread Metadata:', metadata);
+    
     } catch (error) {
       // Handle the error if needed
       console.error('Error handling thread click:', error);
     }
   };
   
-  
-
 
   const handleRefreshChat = () => {
     setThreadId(null);
     setMessages([]);
     setQuery(""); // This line is not necessary as the page will be reloaded
+    // window.location.replace("/chat");
   };
 
 
@@ -299,15 +306,29 @@ function ChatScreen() {
     setIsLoading(false);
   };
 
-  const handleshowthreads = async () => {
-    const { threadIds, timestamps } = await showPreviousThreads(userId);
+  useEffect(() => {
+    const handleShowThreads = async () => {
+      const { threadIds, timestamps } = await showPreviousThreads(userId);
 
-    const threadData = {};
-    threadIds.forEach((threadId, index) => {
-      threadData[threadId] = timestamps[index];
-    });
-  
-    setPreviousMessage(threadData);
+      if (threadIds.length === 0) {
+        setPreviousMessage({"none": "No history found"});
+        return;
+      }
+
+      const threadData = {};
+      threadIds.forEach((threadId, index) => {
+        threadData[threadId] = timestamps[index];
+      });
+    
+      setPreviousMessage(threadData);
+      
+    };
+
+    handleShowThreads();
+  }, [userId]);
+
+  const handleshowthreads = async () => {
+    
     setIsOpen(true);
     setshowThreads(!showThreads);
   }
@@ -484,18 +505,21 @@ function ChatScreen() {
       exit={{ opacity: 0, height: 0 }}
       style={{ overflow: 'hidden' }}
     >
-      <div className="max-h-60 overflow-auto">
-        <ul className="text-highlight font-pop font-medium">
-          {Object.entries(previousMessage).map(([threadId, timestamp], index) => (
-            <li
-              key={index}
-              className={`p-[1rem] ${threadId === selectedItem ? 'bg-[#343563]' : ''} hover:bg-[#343563] cursor-pointer`}
-              onClick={() => handleThreadClick(threadId, index)}
-            >
-              {formatTimestamp(timestamp)}
-            </li>
-          ))}
-        </ul>
+      <div className="max-h-full overflow-auto">
+      <ul className="text-highlight font-pop font-medium">
+        {Object.keys(previousMessage).length === 1 
+          ? <li className="p-[1rem]">No history found</li> 
+          : Object.entries(previousMessage).map(([threadId, timestamp], index) => (
+              <li
+                key={index}
+                className={`p-[1rem] ${threadId === selectedItem ? 'bg-[#343563]' : ''} hover:bg-[#343563] cursor-pointer`}
+                onClick={() => handleThreadClick(threadId, index)}
+              >
+                {formatTimestamp(timestamp)}
+              </li>
+            ))
+        }
+      </ul>
       </div>
     </motion.div>
   )}
@@ -613,7 +637,7 @@ function ChatScreen() {
           </div>
 
           <div className=" flex-grow flex flex-col absolute items-center mb-[1.25rem] mx-auto bottom-0 ">
-            {!starterQuestionSelected && ( // This condition now covers both scenarios
+            { !starterQuestionSelected && ( // This condition now covers both scenarios
               <div className="grid grid-cols-2 w-full absolute flex mx-auto bottom-0 mb-[4.375rem] gap-[0.625rem]">
                 {activeAIQuestions.map((question, index) => (
                   <StarterQuestions

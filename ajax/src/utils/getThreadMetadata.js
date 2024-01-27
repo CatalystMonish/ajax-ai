@@ -22,6 +22,7 @@ const getThreadMetadata = async (threadId) => {
   
       data.data.reverse().forEach((message) => {
         const contentText = message.content[0]?.text?.value || '';
+        const cleanedContent = contentText.replace(/\[.*?\]/g, '')
   
         // Determine the role
         const role = message.role === 'assistant' ? 'response' : 'message';
@@ -30,7 +31,7 @@ const getThreadMetadata = async (threadId) => {
           messageDictionary[threadId] = [];
         }
   
-        messageDictionary[threadId].push({ [role]: contentText });
+        messageDictionary[threadId].push({ [role]: cleanedContent });
       });
   
       console.log('Message Dictionary:', messageDictionary);

@@ -1,8 +1,8 @@
 import { marked } from "marked";
-import {UserAuth} from "../context/AuthContext"
+import { UserAuth } from "../context/AuthContext"
 import { doc, collection, serverTimestamp, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase.js";
-
+import promtLayer from "./promptLayer.js";
 // let threadId = null;
 async function interactWithOpenAI(
   message,
@@ -12,10 +12,10 @@ async function interactWithOpenAI(
   setThreadId,
   assistantId = "asst_Po9xlahc0bNt7EojFwqSPCSo",
 ) {
-  let currentThreadId= threadId;
+  let currentThreadId = threadId;
   // console.log(threadId);
 
-  const OPENAI_API_KEY =import.meta.env.VITE_OPENAI_API_KEY; // Replace with your actual API key
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY; // Replace with your actual API key
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -30,17 +30,21 @@ async function interactWithOpenAI(
       headers: headers,
     });
     const threadData = await threadResponse.json();
-    setThreadId( threadData.id);
-    currentThreadId=threadData.id;
+    setThreadId(threadData.id);
+    currentThreadId = threadData.id;
   }
   // console.log(currentThreadId);
   // Create a message in the existing or new thread
+  // const optimizedPrompt = await promtLayer(message);
+  console.log("after optimization");
+  const combinedMessage = message;
+
   const messageUrl = `https://api.openai.com/v1/threads/${currentThreadId}/messages`;
   console.log("Creating message:", messageUrl);
   await fetch(messageUrl, {
     method: "POST",
     headers: headers,
-    body: JSON.stringify({ role: "user", content: message }),
+    body: JSON.stringify({ role: "user", content: combinedMessage }),
   });
 
   // Create a run
@@ -69,45 +73,45 @@ async function interactWithOpenAI(
   // Function to save thread and messages to Firestore with user ID, thread ID, and messages
   const saveThreads = async (userId, threadId) => {
     try {
-        const userThreadsCollection = collection(db, 'userThreads');
-        const userDocRef = doc(userThreadsCollection, userId);
+      const userThreadsCollection = collection(db, 'userThreads');
+      const userDocRef = doc(userThreadsCollection, userId);
 
-        // Check if the user document exists
-        const userDocSnapshot = await getDoc(userDocRef);
+      // Check if the user document exists
+      const userDocSnapshot = await getDoc(userDocRef);
 
-        if (!userDocSnapshot.exists()) {
-            // If user document doesn't exist, create a new one with the new threadId
-            await setDoc(userDocRef, {
-                [threadId]: {
-                    timestamp: serverTimestamp(),
-                },
-            });
+      if (!userDocSnapshot.exists()) {
+        // If user document doesn't exist, create a new one with the new threadId
+        await setDoc(userDocRef, {
+          [threadId]: {
+            timestamp: serverTimestamp(),
+          },
+        });
 
-            console.log('Thread saved to Firestore.');
+        console.log('Thread saved to Firestore.');
+      } else {
+        // Update the existing user document with the new threadId
+        const userData = userDocSnapshot.data();
+
+        if (!userData || !userData[threadId]) {
+          // If threadId doesn't exist, add it to the existing document
+          await updateDoc(userDocRef, {
+            [threadId]: {
+              timestamp: serverTimestamp(),
+            },
+          });
+
+          console.log('Thread saved to Firestore.');
         } else {
-            // Update the existing user document with the new threadId
-            const userData = userDocSnapshot.data();
-
-            if (!userData || !userData[threadId]) {
-                // If threadId doesn't exist, add it to the existing document
-                await updateDoc(userDocRef, {
-                    [threadId]: {
-                        timestamp: serverTimestamp(),
-                    },
-                });
-
-                console.log('Thread saved to Firestore.');
-            } else {
-                console.log('Thread already exists in Firestore.');
-            }
+          console.log('Thread already exists in Firestore.');
         }
+      }
     } catch (error) {
-        console.error('Error saving thread to Firestore:', error);
+      console.error('Error saving thread to Firestore:', error);
     }
-};
+  };
 
 
-  
+
   // Retrieve all messages in the thread
   const messagesUrl = `https://api.openai.com/v1/threads/${currentThreadId}/messages`;
   console.log("Retrieving messages:", messagesUrl);
@@ -125,6 +129,8 @@ async function interactWithOpenAI(
 
   // Extracting the text value from the first item of the content array
   const latestMessageText = lastMessage.content[0].text.value;
+
+
 
   const cleanText = (text) => {
     const regex = /【\d+†source】/g;

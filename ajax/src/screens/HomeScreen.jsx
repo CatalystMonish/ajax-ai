@@ -325,6 +325,7 @@ function HomeScreen() {
               ))}
             </div>
           </div>
+          
         </div>
         <div className="bg-container rounded-[0.625rem] py-[2.5rem] px-[1.875rem] w-full mt-[2.5rem]">
           <p className=" text-[1.875rem] uppercase w-full text-white font-bold font-pop mb-[1.25rem] ml-[1.25rem]">

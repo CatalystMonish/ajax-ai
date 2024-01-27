@@ -83,12 +83,12 @@ function TopBar() {
                 </p>
               </div>
             </button>
-            <span
+            {/* <span
               className="group-hover:opacity-100 transition-opacity bg-gray-800 px-1 text-sm text-gray-100 rounded-md absolute left-1/2
     -translate-x-1/2 translate-y-full opacity-0 m-4 mx-auto font-work"
             >
               Logout
-            </span>
+            </span> */}
           </div>
         
         
@@ -96,17 +96,17 @@ function TopBar() {
         {user && user.photoURL && (
           <div className="group flex relative">
             <img
-              title="profile"
+              // title="profile"
               alt="User Profile"
               src={user.photoURL}
               className="w-[30px] h-[30px] rounded-full mr-m-10 transform  transition-transform hover:shadow-xl hover:-translate-y-1  "
             />
-            <span
+            {/* <span
               className="group-hover:opacity-100 transition-opacity bg-gray-800 px-1 text-sm text-gray-100 rounded-md absolute left-1/2
     -translate-x-1/2 translate-y-full opacity-0 m-4 mx-auto font-work"
             >
               Profile Image
-            </span>
+            </span> */}
           </div>
         )}
       </div>
